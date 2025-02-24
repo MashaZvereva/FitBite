@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "933108821914",
+    "project_id": "fitbite-c290c",
+    "storage_bucket": "fitbite-c290c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933108821914:android:d9b48ca0be3fc822c55423",
+        "android_client_info": {
+          "package_name": "com.example.fitbite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVTeUdYiJ2rvY0RstuxiQbTeI2WiVsALk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
