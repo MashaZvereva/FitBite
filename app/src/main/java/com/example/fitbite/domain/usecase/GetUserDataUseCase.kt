@@ -1,4 +1,4 @@
-package com.example.fitbite.domain.model
+package com.example.fitbite.domain.usecase
 
 import com.example.fitbite.data.model.UserData
 import com.example.fitbite.data.repository.UserRepository
