@@ -2,6 +2,7 @@ package com.example.fitbite.presentation.view
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -44,6 +45,7 @@ class InfoUserActivity : AppCompatActivity() {
         authViewModel.getUserData { userData ->
             if (userData != null) {
                 // Используйте userData для отображения
+                updateUI(auth.currentUser)
                 displayUserData(userData)
             } else {
                 // Покажите поля для ввода данных, если данные не найдены
@@ -51,12 +53,8 @@ class InfoUserActivity : AppCompatActivity() {
             }
         }
 
-        //? Проверка авторизации и обновление UI при старте активности
-        updateUI(auth.currentUser)
-
        //Инициазация полей
        val welcomeTextView: TextView = findViewById(R.id.welcomeTextView)
-       val logoutButton: Button = findViewById(R.id.logout_button)
        val weightEditText: EditText = findViewById(R.id.weightEditText)
        val heightEditText: EditText = findViewById(R.id.heightEditText)
        val ageEditText: EditText = findViewById(R.id.ageEditText)
@@ -164,32 +162,25 @@ class InfoUserActivity : AppCompatActivity() {
                 authViewModel.saveUserData(userData)
             }
         }
-
-        //Обработка нажатия на кнопку
-        logoutButton.setOnClickListener {
-            // Завершаем текущую активность (выход)
-            FirebaseAuth.getInstance().signOut() // Выход из Firebase
-
-            // Переход на экран аутентификации
-            navigateToAuthActivity()
-        }
     }
 
 
     override fun onStart() {
         super.onStart()
+
         // Проверка авторизации и обновление UI при старте активности
-        // Проверка авторизации
         val user = auth.currentUser
         if (user != null) {
             // Загружаем данные из Firestore после входа
             authViewModel.getUserData { userData ->
                 if (userData != null) {
                     displayUserData(userData)
+                    // После загрузки данных обновляем UI с именем или email
+                    updateUI(user)
                 }
             }
         } else {
-            updateUI(null)
+            updateUI(null)  // Если нет авторизованного пользователя, показываем дефолтный текст
         }
     }
 
@@ -197,58 +188,30 @@ class InfoUserActivity : AppCompatActivity() {
     //Обновляет видимость элементов в зависимости от того, авторизован ли пользователь
     private fun updateUI(user: FirebaseUser?) {
         val welcomeTextView: TextView = findViewById(R.id.welcomeTextView)
-        val logoutButton: Button = findViewById(R.id.logout_button)
-        val weightEditText: EditText = findViewById(R.id.weightEditText)
-        val heightEditText: EditText = findViewById(R.id.heightEditText)
-        val ageEditText: EditText = findViewById(R.id.ageEditText)
-        val genderSpinner: Spinner = findViewById(R.id.genderSpinner)
-        val activitySpinner: Spinner = findViewById(R.id.activitySpinner)
-        val resultSpinner: Spinner = findViewById(R.id.resultSpinner)
-        val calculateButton: Button = findViewById(R.id.calculateButton)
-        val caloriesResultTextView: TextView = findViewById(R.id.caloriesResultTextView)
-        val bmiResultTextView: TextView = findViewById(R.id.bmiResultTextView)
 
         // Очистить поля перед обновлением данных
         clearFields()
 
         if (user != null) {
-            // Показываем поля для расчета
-            weightEditText.visibility = EditText.VISIBLE
-            heightEditText.visibility = EditText.VISIBLE
-            ageEditText.visibility = EditText.VISIBLE
-            genderSpinner.visibility = Spinner.VISIBLE
-            activitySpinner.visibility = Spinner.VISIBLE
-            resultSpinner.visibility = Spinner.VISIBLE
-            calculateButton.visibility = Button.VISIBLE
-            bmiResultTextView.visibility = TextView.VISIBLE
-            caloriesResultTextView.visibility = TextView.VISIBLE
+            // Логирование для проверки данных пользователя
+            Log.d("InfoUserActivity", "User displayName: ${user.displayName}, User email: ${user.email}")
 
-            // Прячем поля для входа и регистрации
-            welcomeTextView.visibility = TextView.VISIBLE
-            logoutButton.visibility = Button.VISIBLE
-
-            welcomeTextView.text = "Добро пожаловать, ${user.displayName ?: user.email}!"
+            // Отображаем имя пользователя или email, если displayName не доступно
+            val displayNameOrEmail = user.displayName ?: user.email
+            if (!displayNameOrEmail.isNullOrEmpty()) {
+                welcomeTextView.text = "Добро пожаловать, $displayNameOrEmail!"
+            } else {
+                welcomeTextView.text = "Добро пожаловать!"
+            }
 
             // Загрузите данные нового пользователя из Firestore
             loadUserDataFromFirestore()
-
         } else {
-            // Показываем только поля для входа и регистрации
-            welcomeTextView.visibility = TextView.GONE
-            logoutButton.visibility = Button.GONE
-
-            // Скрываем все поля для расчета
-            weightEditText.visibility = EditText.GONE
-            heightEditText.visibility = EditText.GONE
-            ageEditText.visibility = EditText.GONE
-            genderSpinner.visibility = Spinner.GONE
-            activitySpinner.visibility = Spinner.GONE
-            resultSpinner.visibility = Spinner.GONE
-            calculateButton.visibility = Button.GONE
-            bmiResultTextView.visibility = TextView.GONE
-            caloriesResultTextView.visibility = TextView.GONE
+            // Если пользователь не авторизован, отображаем дефолтное приветствие
+            welcomeTextView.text = "Добро пожаловать!"
         }
     }
+
 
     // Загрузить данные из Firestore
     private fun loadUserDataFromFirestore() {
@@ -265,6 +228,7 @@ class InfoUserActivity : AppCompatActivity() {
 
     // Метод для отображения данных в UI
     private fun displayUserData(userData: UserData) {
+
         findViewById<EditText>(R.id.weightEditText).setText(userData.weight.toString())
         findViewById<EditText>(R.id.heightEditText).setText(userData.height.toString())
         findViewById<EditText>(R.id.ageEditText).setText(userData.age.toString())
@@ -316,13 +280,6 @@ class InfoUserActivity : AppCompatActivity() {
         // Очистить рассчитанные значения ИМТ и калории
         findViewById<TextView>(R.id.bmiResultTextView).text = ""
         findViewById<TextView>(R.id.caloriesResultTextView).text = ""
-    }
-
-    // Переход на AuthActivity
-    private fun navigateToAuthActivity() {
-        val intent = Intent(this, AuthActivity::class.java)
-        startActivity(intent)
-        finish()
     }
 
 }

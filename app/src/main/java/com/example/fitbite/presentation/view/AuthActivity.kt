@@ -44,7 +44,7 @@ class AuthActivity : AppCompatActivity() {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             // Если пользователь уже авторизован, сразу переходим на InfoUserActivity
-            navigateToInfoUserActivity()
+            navigateToIMainActivity()
             return  // Прерываем выполнение метода, чтобы не показывать экран авторизации
         }
 
@@ -66,7 +66,7 @@ class AuthActivity : AppCompatActivity() {
             if (isLoginMode) {
                 authViewModel.loginUser(email, password, {
                     updateUI(auth.currentUser) // Успешный вход
-                    navigateToInfoUserActivity() // Переход на InfoUserActivity
+                    navigateToIMainActivity() // Переход на InfoUserActivity
                 }, { errorMessage ->
                     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                 })
@@ -74,7 +74,7 @@ class AuthActivity : AppCompatActivity() {
                 authViewModel.registerUser(email, password, username, {
                     Toast.makeText(this, "Регистрация прошла успешно", Toast.LENGTH_SHORT).show()
                     updateUI(auth.currentUser)
-                    navigateToInfoUserActivity() // Переход на InfoUserActivity
+                    navigateToIMainActivity() // Переход на InfoUserActivity
                 }, { errorMessage ->
                     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                 })
@@ -106,8 +106,8 @@ class AuthActivity : AppCompatActivity() {
     }
 
     // Переход на InfoUserActivity
-    private fun navigateToInfoUserActivity() {
-        val intent = Intent(this, InfoUserActivity::class.java)
+    private fun navigateToIMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish() // Завершаем текущую активность, чтобы она не осталась в стеке
     }

@@ -59,4 +59,6 @@ dependencies {
     // MVVM - добавление библиотеки для ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.0")
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.6.0")
+
+    implementation ("com.google.android.gms:play-services-auth:19.0.0")
 }
