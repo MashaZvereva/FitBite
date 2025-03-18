@@ -64,6 +64,7 @@ class InfoUserActivity : AppCompatActivity() {
        val calculateButton: Button = findViewById(R.id.calculateButton)
        val caloriesResultTextView: TextView = findViewById(R.id.caloriesResultTextView)
        val bmiResultTextView: TextView = findViewById(R.id.bmiResultTextView)
+        val waterIntakeTextView: TextView = findViewById(R.id.waterIntakeTextView)
 
         //? Проверка, авторизован ли пользователь
         if (auth.currentUser != null) {
@@ -112,6 +113,12 @@ class InfoUserActivity : AppCompatActivity() {
             }
             val infoUserViewModel = InfoUserViewModel()
 
+            // Рассчитываем норму воды
+            val waterIntake = infoUserViewModel.calculateWaterIntake(weight, age, gender, activity, result)
+
+            // Отображаем результат нормы воды
+            waterIntakeTextView.text = "Норма воды: %.2f литра".format(waterIntake)
+
             // Рассчитываем норму калорий в зависимости от выбранных параметров
             val calories = infoUserViewModel.calculateCalories(weight, height, age, gender, activity, result)
 
@@ -126,18 +133,18 @@ class InfoUserActivity : AppCompatActivity() {
             val bmiCategory = when {
                 bmi < 18.5 -> {
                     val requiredWeightToGain = infoUserViewModel.calculateWeightToGain(bmi, weight, height)
-                    "ИМТ: %.2f Недостаточный вес. \nДля нормализации нужно набрать минимум %.2f кг.".format(bmi, requiredWeightToGain)
+                    "ИМТ: %.2f Недостаточный вес. \n\nДля нормализации нужно набрать минимум %.2f кг.".format(bmi, requiredWeightToGain)
                 }
                 bmi in 18.5..24.9 -> {
                     "ИМТ: %.2f Нормальный вес.".format(bmi)
                 }
                 bmi in 25.0..29.9 -> {
                     val requiredWeightToLose = infoUserViewModel.calculateWeightToLose(bmi, weight, height)
-                    "ИМТ: %.2f Избыточный вес. \nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
+                    "ИМТ: %.2f Избыточный вес. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
                 }
                 else -> {
                     val requiredWeightToLose = infoUserViewModel.calculateWeightToLose(bmi, weight, height)
-                    "ИМТ: %.2f Ожирение. \nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
+                    "ИМТ: %.2f Ожирение. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
                 }
             }
             // Отображаем результат ИМТ
@@ -280,6 +287,7 @@ class InfoUserActivity : AppCompatActivity() {
         // Очистить рассчитанные значения ИМТ и калории
         findViewById<TextView>(R.id.bmiResultTextView).text = ""
         findViewById<TextView>(R.id.caloriesResultTextView).text = ""
+        findViewById<TextView>(R.id.waterIntakeTextView).text = ""
     }
 
 }

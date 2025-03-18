@@ -12,12 +12,12 @@
         android:id="@+id/welcomeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
         android:text="Добро Пожаловать!"
         android:textSize="18sp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="100dp" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Поле для ввода веса -->
     <EditText
@@ -27,10 +27,10 @@
         android:layout_marginTop="14dp"
         android:layout_marginBottom="14dp"
         android:hint="Вес (кг)"
-        app:layout_constraintTop_toBottomOf="@+id/welcomeTextView"
-        app:layout_constraintStart_toStartOf="parent"
+        android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:padding="12dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/welcomeTextView" />
 
     <!-- Поле для ввода роста -->
     <EditText
@@ -39,10 +39,10 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="14dp"
         android:hint="Рост (см)"
-        app:layout_constraintTop_toBottomOf="@+id/weightEditText"
-        app:layout_constraintStart_toStartOf="parent"
+        android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:padding="12dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/weightEditText" />
 
     <!-- Поле для ввода возраста -->
     <EditText
@@ -51,78 +51,94 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="14dp"
         android:hint="Возраст (лет)"
-        app:layout_constraintTop_toBottomOf="@+id/heightEditText"
-        app:layout_constraintStart_toStartOf="parent"
+        android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:padding="12dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/heightEditText" />
 
     <!-- Поле выбора пола -->
     <Spinner
         android:id="@+id/genderSpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/ageEditText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"
         android:layout_marginBottom="14dp"
-        android:layout_marginTop="24dp"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ageEditText" />
 
     <!-- Поле выбора физической активности -->
     <Spinner
         android:id="@+id/activitySpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/genderSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"
         android:layout_marginBottom="14dp"
-        android:layout_marginTop="24dp"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/genderSpinner" />
 
     <!-- Поле выбора желаемого результата -->
     <Spinner
         android:id="@+id/resultSpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/activitySpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"
         android:layout_marginBottom="14dp"
-        android:layout_marginTop="24dp"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/activitySpinner" />
 
     <!-- Кнопка для расчета -->
     <Button
         android:id="@+id/calculateButton"
         android:layout_width="140dp"
         android:layout_height="50dp"
+        android:layout_marginTop="30dp"
         android:text="Рассчитать"
-        app:layout_constraintTop_toBottomOf="@+id/resultSpinner"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="30dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/resultSpinner" />
 
     <!-- Результат калорий-->
-    <TextView
-        android:id="@+id/caloriesResultTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Суточная норма калорий: "
-        android:textSize="16sp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@+id/calculateButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Результат ИМТ -->
+
+    <!-- Результат ИМТ -->
+
+    <TextView
+        android:id="@+id/caloriesResultTextView"
+        android:layout_width="279dp"
+        android:layout_height="27dp"
+        android:layout_marginTop="28dp"
+        android:text="Суточная норма калорий: "
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calculateButton" />
+
+    <TextView
+        android:id="@+id/waterIntakeTextView"
+        android:layout_width="283dp"
+        android:layout_height="21dp"
+        android:layout_marginTop="20dp"
+        android:text="Норма воды: "
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.467"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/caloriesResultTextView" />
+
     <TextView
         android:id="@+id/bmiResultTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="287dp"
+        android:layout_height="92dp"
+        android:layout_marginTop="20dp"
         android:text="Индекс массы тела: "
         android:textSize="16sp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/caloriesResultTextView"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/waterIntakeTextView" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

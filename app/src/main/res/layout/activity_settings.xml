@@ -8,50 +8,63 @@
     tools:context=".presentation.view.SettingsActivity">
 
     <!-- Переключатель для выбора темы -->
+
+    <!-- Кнопка для условий использования -->
+
+    <!-- Кнопка Политика конфиденциальности -->
+
+    <!-- Кнопка для отправки отзыва -->
+
+    <!-- Кнопка для выхода -->
+
     <Switch
         android:id="@+id/themeSwitch"
         android:layout_width="270dp"
         android:layout_height="50dp"
         android:text="Темная тема"
         app:layout_constraintBottom_toTopOf="@+id/termsButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.911"
-        tools:layout_editor_absoluteX="80dp" />
+        app:layout_constraintVertical_bias="0.853" />
 
-    <!-- Кнопка для условий использования -->
     <Button
         android:id="@+id/termsButton"
         android:layout_width="270dp"
         android:layout_height="50dp"
         android:layout_below="@id/themeSwitch"
-        android:layout_marginBottom="72dp"
+        android:layout_marginBottom="80dp"
         android:text="Условия использования"
         app:layout_constraintBottom_toTopOf="@+id/feedbackButton"
-        tools:layout_editor_absoluteX="80dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Кнопка Политика конфиденциальности -->
     <Button
         android:id="@+id/policyButton"
         android:layout_width="270dp"
         android:layout_height="50dp"
         android:layout_below="@id/termsButton"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="16dp"
         android:text="Политика конфиденциальности"
         app:layout_constraintBottom_toTopOf="@+id/feedbackButton"
-        tools:layout_editor_absoluteX="80dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Кнопка для отправки отзыва -->
     <Button
         android:id="@+id/feedbackButton"
         android:layout_width="270dp"
         android:layout_height="50dp"
         android:layout_below="@id/policyButton"
-        android:layout_marginBottom="240dp"
+        android:layout_marginBottom="256dp"
         android:text="Отзыв разработчику"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="80dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Кнопка для выхода -->
     <Button
         android:id="@+id/logout_button"
         android:layout_width="270dp"
@@ -61,7 +74,10 @@
         android:layout_marginBottom="176dp"
         android:text="Выход"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/feedbackButton"
-        tools:layout_editor_absoluteX="80dp" />
+        app:layout_constraintVertical_bias="0.133" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
