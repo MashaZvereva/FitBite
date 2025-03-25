@@ -2,9 +2,7 @@ package com.example.fitbite.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fitbite.domain.usecase.SaveUserDataUseCase
 import com.example.fitbite.data.model.UserData
-import com.example.fitbite.domain.usecase.GetUserDataUseCase
 import kotlinx.coroutines.launch
 
 class InfoUserViewModel {

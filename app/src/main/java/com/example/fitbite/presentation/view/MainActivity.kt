@@ -9,10 +9,12 @@ import android.os.Looper
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.fitbite.R
 import com.google.firebase.auth.FirebaseAuth
 import androidx.appcompat.app.AppCompatDelegate
+import com.example.fitbite.presentation.viewmodel.AuthViewModel
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,14 +35,24 @@ class MainActivity : AppCompatActivity() {
 
         sharedPreferences = getSharedPreferences("user_preferences", MODE_PRIVATE)
 
+
+        // Проверяем токен при входе
+        val authViewModel: AuthViewModel by viewModels()
+        authViewModel.getToken { token ->
+            if (token.isNullOrEmpty()) {
+                startActivity(Intent(this, AuthActivity::class.java))
+                finish()
+            }
+        }
+
         // Загружаем тему и применяем
         val isDarkMode = loadTheme(currentUserId)
         applyTheme(isDarkMode)
 
-        // Устанавливаем обработчик на кнопки
-        findViewById<Button>(R.id.btnInfoUser).setOnClickListener {
-            startActivity(Intent(this, InfoUserActivity::class.java))
-        }
+       //// Устанавливаем обработчик на кнопки
+       //findViewById<Button>(R.id.btnInfoUser).setOnClickListener {
+       //    startActivity(Intent(this, InfoUserActivity::class.java))
+       //}
         findViewById<Button>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
