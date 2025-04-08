@@ -5,25 +5,36 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.Switch
 import android.app.AlertDialog
+import android.app.VoiceInteractor
 import android.content.Intent
 import android.net.Uri
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.fitbite.R
-import com.google.firebase.auth.FirebaseAuth
-import android.util.Log
+import com.example.fitbite.data.repository.AuthRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
-    private val currentUserId = getCurrentUserId() // Получаем ID текущего пользователя
+    private lateinit var currentUserId: String
+    private val authRepository: AuthRepository by lazy { AuthRepository(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+        // Инициализация SharedPreferences
         sharedPreferences = getSharedPreferences("user_preferences", MODE_PRIVATE)
+
+        // Получаем ID текущего пользователя
+        currentUserId = getCurrentUserId()
 
         val themeSwitch: Switch = findViewById(R.id.themeSwitch)
         val termsButton: Button = findViewById(R.id.termsButton)
@@ -51,13 +62,16 @@ class SettingsActivity : AppCompatActivity() {
         // Обработчик кнопки отзыва разработчику
         feedbackButton.setOnClickListener { showFeedbackDialog() }
 
-        //Обработка нажатия на кнопку
+        // Обработчик кнопки выхода
         logoutButton.setOnClickListener {
-            // Завершаем текущую активность (выход)
-            FirebaseAuth.getInstance().signOut() // Выход из Firebase
+            // Удаляем токен из DataStore
+            CoroutineScope(Dispatchers.IO).launch {
+                authRepository.deleteToken()  // Удаляем токен через AuthRepository
+                logoutFromServer()  // Выход с сервера
 
-            // Переход на экран аутентификации
-            navigateToAuthActivity()
+                // Переход на экран аутентификации
+                navigateToAuthActivity()
+            }
         }
     }
 
@@ -65,12 +79,14 @@ class SettingsActivity : AppCompatActivity() {
     private fun applyTheme(isDarkMode: Boolean) {
         val mode = if (isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
         AppCompatDelegate.setDefaultNightMode(mode)
+
     }
 
     // Функция для сохранения темы для текущего пользователя
     private fun saveThemePreferenceForUser(userId: String, isDarkMode: Boolean) {
         sharedPreferences.edit().putBoolean("theme_$userId", isDarkMode).apply()
     }
+
 
     // Функция для загрузки темы текущего пользователя из SharedPreferences
     private fun loadTheme(userId: String): Boolean {
@@ -120,13 +136,34 @@ class SettingsActivity : AppCompatActivity() {
 
     // Функция для получения уникального ID текущего пользователя
     private fun getCurrentUserId(): String {
-        return FirebaseAuth.getInstance().currentUser?.uid ?: "default_user"
+        // Возвращаем ID текущего пользователя из SharedPreferences или токен сессии, если используется
+        val token = sharedPreferences.getString("auth_token", null)
+        return token ?: "default_user"
+    }
+
+    // Функция для выхода с сервера (отправка запроса на сервер для выхода пользователя)
+    private fun logoutFromServer() {
+        val apiUrl = "http://your-django-api-url/logout/" // Замените на ваш URL для выхода
+        val token = sharedPreferences.getString("auth_token", null)
+
+        if (token != null) {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url(apiUrl)
+                .addHeader("Authorization", "Bearer $token") // Отправка токена на сервер
+                .post(RequestBody.create(null, ""))
+                .build()
+
+            client.newCall(request).execute()
+        }
     }
 
     // Переход на AuthActivity
     private fun navigateToAuthActivity() {
         val intent = Intent(this, AuthActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Это очистит стек активностей, чтобы не было возврата на предыдущие экраны
         startActivity(intent)
-        finish()
+        finish() // Завершаем текущую активность
     }
 }
+

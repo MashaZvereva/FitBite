@@ -7,6 +7,13 @@
     android:layout_height="match_parent"
     tools:context=".presentation.view.MainActivity">
 
+    <!-- Пример контейнера для фрагментов в вашем layout -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </FrameLayout>
 
     <!-- Кастомный виджет для отображения часов -->
 
@@ -84,5 +91,36 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.956" />
+
+    <!-- Кнопка для перехода на Фрагмент активности -->
+    <Button
+        android:id="@+id/btnActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Добавить активность"
+        app:layout_constraintBottom_toTopOf="@+id/btnFood"
+        android:layout_marginTop="16dp"/>
+
+    <!-- Кнопка для перехода на Фрагмент продуктов -->
+    <Button
+        android:id="@+id/btnProduct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Добавить продукт"
+        app:layout_constraintBottom_toTopOf="@+id/btnActivity"
+        android:layout_marginTop="16dp"/>
+
+    <!-- Шагометр -->
+    <TextView
+        android:id="@+id/stepsTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Шаги сегодня: 0"
+        android:textSize="18sp"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        app:layout_constraintBottom_toTopOf="@+id/btnProduct"/>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

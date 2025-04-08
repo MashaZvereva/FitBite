@@ -2,25 +2,45 @@ package com.example.fitbite.presentation.view
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.example.fitbite.R
-import com.google.firebase.auth.FirebaseAuth
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.example.fitbite.R
 import com.example.fitbite.presentation.viewmodel.AuthViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.fitness.Fitness
+import com.google.android.gms.fitness.FitnessOptions
+import com.google.android.gms.fitness.data.DataType
+import com.google.firebase.auth.FirebaseAuth
+import android.Manifest
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import java.text.Format
+import com.google.android.gms.fitness.data.DataPoint
+import com.google.android.gms.fitness.data.Field
+
 
 class MainActivity : AppCompatActivity() {
 
     // Хранилище для состояния темы
     private lateinit var sharedPreferences: SharedPreferences
     private val currentUserId = getCurrentUserId()
+    private val authViewModel: AuthViewModel by viewModels()
 
     // Часы
     private lateinit var clockView: ClockView
@@ -29,6 +49,15 @@ class MainActivity : AppCompatActivity() {
     // Календарь
     private lateinit var calendarLayout: LinearLayout
 
+    ////Fit Google
+    //private lateinit var stepsTextView: TextView
+    //private lateinit var permissionLauncher: ActivityResultLauncher<IntentSenderRequest>
+    //private lateinit var fitnessOptions: FitnessOptions
+    //private val GOOGLE_FIT_REQUEST_CODE = 1001
+
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -36,12 +65,16 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences = getSharedPreferences("user_preferences", MODE_PRIVATE)
 
 
-        // Проверяем токен при входе
-        val authViewModel: AuthViewModel by viewModels()
+        // Проверка токена
         authViewModel.getToken { token ->
             if (token.isNullOrEmpty()) {
-                startActivity(Intent(this, AuthActivity::class.java))
-                finish()
+                // Токен не найден — переходим в AuthActivity
+                val intent = Intent(this, AuthActivity::class.java)
+                startActivity(intent)
+                finish() // Закрываем MainActivity
+            } else {
+                // Токен есть — продолжаем загрузку интерфейса
+                setContentView(R.layout.activity_main)
             }
         }
 
@@ -49,16 +82,28 @@ class MainActivity : AppCompatActivity() {
         val isDarkMode = loadTheme(currentUserId)
         applyTheme(isDarkMode)
 
-       //// Устанавливаем обработчик на кнопки
-       //findViewById<Button>(R.id.btnInfoUser).setOnClickListener {
-       //    startActivity(Intent(this, InfoUserActivity::class.java))
-       //}
+        // Устанавливаем обработчик на кнопки
+        findViewById<Button>(R.id.btnInfoUser).setOnClickListener {
+            startActivity(Intent(this, InfoUserActivity::class.java))
+        }
         findViewById<Button>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         findViewById<Button>(R.id.btnFood).setOnClickListener {
             startActivity(Intent(this, FoodActivity::class.java))
         }
+        findViewById<Button>(R.id.btnActivity).setOnClickListener {
+            // Создаем новый экземпляр ActivityDialogFragment
+            val fragment = ActivityDialogFragment()
+
+            // Отображаем фрагмент как диалог
+            fragment.show(supportFragmentManager, fragment.tag)
+        }
+        findViewById<Button>(R.id.btnProduct).setOnClickListener {
+            val fragment = ProductDialogFragment()
+            fragment.show(supportFragmentManager, fragment.tag)
+        }
+
 
         // Часы
         clockView = findViewById(R.id.clockView)
@@ -89,7 +134,10 @@ class MainActivity : AppCompatActivity() {
 
         // Начало недели (понедельник)
         val startOfWeek = calendar.clone() as Calendar
-        startOfWeek.set(Calendar.DAY_OF_WEEK, startOfWeek.firstDayOfWeek) // Переводим на понедельник
+        startOfWeek.set(
+            Calendar.DAY_OF_WEEK,
+            startOfWeek.firstDayOfWeek
+        ) // Переводим на понедельник
 
         // Добавляем 7 дней в календарь
         for (i in 0..6) {
@@ -112,7 +160,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             // Добавляем TextView в LinearLayout
-            val layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            val layoutParams =
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             layoutParams.setMargins(5, 0, 5, 0)
             dayTextView.layoutParams = layoutParams
 
@@ -121,11 +170,16 @@ class MainActivity : AppCompatActivity() {
             // Перемещаем на следующий день
             startOfWeek.add(Calendar.DAY_OF_MONTH, 1)
         }
+
+
+       // stepsTextView = findViewById(R.id.stepsTextView)
+       // setupGoogleFit()
     }
 
     // Функция для применения выбранной темы
     private fun applyTheme(isDarkMode: Boolean) {
-        val mode = if (isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+        val mode =
+            if (isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
         AppCompatDelegate.setDefaultNightMode(mode)
     }
 
@@ -154,4 +208,61 @@ class MainActivity : AppCompatActivity() {
 
         messageTextView.text = message
     }
+
+   // private fun setupGoogleFit() {
+   //     fitnessOptions = FitnessOptions.builder()
+   //         .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+   //         .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_READ)
+   //         .build()
+//
+   //     permissionLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+   //         if (result.resultCode == RESULT_OK) {
+   //             val account = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
+   //             fetchSteps(account)
+   //         } else {
+   //             Toast.makeText(this, "Google Fit разрешение не предоставлено", Toast.LENGTH_SHORT).show()
+   //         }
+   //     }
+//
+   //     checkGoogleFitPermission()
+   // }
+//
+//
+   // private fun checkGoogleFitPermission() {
+   //     val account = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
+//
+   //     if (!GoogleSignIn.hasPermissions(account, fitnessOptions)) {
+   //         GoogleSignIn.requestPermissions(
+   //             this,
+   //             1, // requestCode (обрабатывается в onActivityResult, если нужно)
+   //             account,
+   //             fitnessOptions
+   //         )
+   //     } else {
+   //         fetchSteps(account)
+   //     }
+   // }
+//
+//
+   // private fun fetchSteps(account: GoogleSignInAccount) {
+   //     Fitness.getHistoryClient(this, account)
+   //         .readDailyTotal(DataType.TYPE_STEP_COUNT_DELTA)
+   //         .addOnSuccessListener { dataSet ->
+   //             val totalSteps = if (dataSet.isEmpty) 0 else {
+   //                 val dataPoint = dataSet.dataPoints[0]
+   //                 dataPoint.getValue(Field.FIELD_STEPS).asInt()
+   //             }
+//
+   //             stepsTextView.text = "Шаги сегодня: $totalSteps"
+   //         }
+   //         .addOnFailureListener {
+   //             Toast.makeText(this, "Ошибка при получении шагов", Toast.LENGTH_SHORT).show()
+   //         }
+   // }
+
 }
+
+
+
+
+

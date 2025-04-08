@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android") version "2.1.0" // Убедитесь, что версия Kotlin используется здесь
     id("com.google.gms.google-services") // Firebase plugin
+    id ("kotlin-parcelize")
 }
 
 android {
@@ -45,6 +46,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.recyclerview)
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
@@ -66,5 +68,18 @@ dependencies {
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation ("com.squareup.okhttp3:okhttp:4.9.0")
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
+
+     // Получение картинки
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
+
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation ("androidx.fragment:fragment-ktx:1.6.2")
+
+    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
+
+    // Связь с Google Fit
+    implementation ("com.google.android.gms:play-services-fitness:21.1.0")
+
 
 }

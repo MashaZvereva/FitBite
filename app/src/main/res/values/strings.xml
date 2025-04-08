@@ -23,7 +23,7 @@
 
 
     <!-- Названия активностей -->
-    <string name="app_name">Cafe</string>
+    <string name="app_name">FitBite</string>
     <string name="title_activity_basket">Basket</string>
     <string name="title_activity_location">Location</string>
     <string name="title_activity_user">User</string>

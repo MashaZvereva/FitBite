@@ -53,4 +53,12 @@ class AuthRepository(private val context: Context) {
         Log.d("AuthRepository", "Token fetched: $token")
         return token
     }
+
+    // Добавим метод для удаления токена
+    suspend fun deleteToken() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(stringPreferencesKey("access_token"))
+            Log.d("AuthRepository", "Token deleted")
+        }
+    }
 }

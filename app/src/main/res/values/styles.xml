@@ -1,62 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Стиль для изображений 1 -->
-    <style name="Style_image_1">
-        <item name="layout_constraintTop_toTopOf">parent</item>
-        <item name="layout_constraintStart_toStartOf">parent</item>
-        <item name="layout_constraintEnd_toEndOf">parent</item>
-        <item name="layout_constraintBottom_toBottomOf">parent</item>
-        <item name="android:alpha">0.85</item>
-        <item name="background">@color/white</item>
-        <item name="android:layout_height">60dp</item>
-        <item name="android:layout_width">415dp</item>
-        <!-- Стиль для изображений 2 -->
-    </style>
-    <style name="Style_image_2">
-        <item name="android:layout_height">60dp</item>
-        <item name="android:layout_width">60dp</item>
-        <item name="layout_constraintTop_toTopOf">parent</item>
-        <item name="layout_constraintStart_toStartOf">parent</item>
-        <item name="layout_constraintEnd_toEndOf">parent</item>
-        <item name="layout_constraintBottom_toBottomOf">parent</item>
-        <item name="layout_constraintVertical_bias">0.97</item>
-    </style>
-    <!-- Стиль для текста -->
-    <style name="Style_text_1">
-
-        <item name="layout_constraintTop_toTopOf">parent</item>
-        <item name="layout_constraintEnd_toEndOf">parent</item>
-        <item name="layout_constraintBottom_toBottomOf">parent</item>
-
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="layout_constraintVertical_bias">0.97</item>
-        <!-- Стиль для кнопок -->
-    </style>
-    <style name="Style_button_1">
-        <item name="layout_constraintTop_toTopOf">parent</item>
-        <item name="layout_constraintEnd_toEndOf">parent</item>
-        <item name="layout_constraintBottom_toBottomOf">parent</item>
-        <item name="layout_constraintVertical_bias">0.96</item>
-        <item name="layout_constraintStart_toStartOf">parent</item>
-        <item name="android:layout_height">60dp</item>
-        <item name="android:layout_width">60dp</item>
-        <item name="android:alpha">0</item>
-    </style>
-    <!-- Стиль для темы -->
+    <!-- Тема приложения -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/white</item>
-        <item name="colorPrimaryDark">@color/white</item>
-        <item name="colorAccent">@color/white</item>
-        <item name="android:textColor">@color/white</item>
+        <!-- Основной цвет для кнопок -->
+        <item name="colorPrimary">@color/button_background</item>
+        <item name="colorPrimaryDark">@color/button_background</item>
+        <item name="colorAccent">@color/button_background</item>
 
-    </style>
-    <style name="AppTheme.RecyclerViewText" parent="TextAppearance.AppCompat">
-        <item name="android:textColor">@color/white</item> <!-- Цвет текста для темной темы -->
+        <!-- Применяем стиль для кнопок -->
+        <item name="buttonStyle">@style/CustomButtonStyle</item>
     </style>
 
-
-
-
+    <!-- Стиль кнопки -->
+    <style name="CustomButtonStyle">
+        <item name="android:background">@color/button_background</item>
+        <item name="android:textColor">@color/button_text_color</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
 </resources>
+

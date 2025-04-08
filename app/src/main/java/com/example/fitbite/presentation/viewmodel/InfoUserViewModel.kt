@@ -1,21 +1,19 @@
 package com.example.fitbite.presentation.viewmodel
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.fitbite.data.model.UserData
-import kotlinx.coroutines.launch
+import com.example.fitbite.data.model.UserParameters
 
 class InfoUserViewModel {
 
     // Рассчитываем норму калорий
      fun calculateCalories(
         weight: Float,
-        height: Float,
+        height: Int?,
         age: Int,
         gender: String,
         activity: String,
         result: String
     ): Int {
+        val safeHeight = height ?: return 0
         // Пример расчета для женского пола
         val bmr = if (gender == "Женский") {
             10 * weight + 6.25 * height - 5 * age - 161
@@ -47,22 +45,26 @@ class InfoUserViewModel {
 
 
     // Функция для расчета ИМТ
-     fun calculateBMI(weight: Float, height: Float): Float {
-        val heightInMeters = height / 100
+    fun calculateBMI(weight: Float, height: Int?): Float {
+        height ?: return 0.0f  // безопасно выйти, если height == null
+        val heightInMeters = height / 100f
         return weight / (heightInMeters * heightInMeters)
     }
 
+
     // Функция для расчета минимального веса для набора
-     fun calculateWeightToGain(bmi: Float, weight: Float, height: Float): Float {
-        val targetBmi = 18.5f
-        val targetWeight = targetBmi * (height / 100) * (height / 100)
+    fun calculateWeightToGain(bmi: Float, weight: Float, height: Int?): Float {
+        height ?: return 0.0f
+        val heightMeters = height / 100f
+        val targetWeight = 18.5f * heightMeters * heightMeters
         return targetWeight - weight
     }
 
     // Функция для расчета минимального веса для сброса
-     fun calculateWeightToLose(bmi: Float, weight: Float, height: Float): Float {
-        val targetBmi = 24.9f
-        val targetWeight = targetBmi * (height / 100) * (height / 100)
+    fun calculateWeightToLose(bmi: Float, weight: Float, height: Int?): Float {
+        height ?: return 0.0f
+        val heightMeters = height / 100f
+        val targetWeight = 24.9f * heightMeters * heightMeters
         return weight - targetWeight
     }
 
@@ -118,4 +120,5 @@ class InfoUserViewModel {
 
         return waterIntake
     }
+
 }

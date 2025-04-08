@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <color name="button_text_color">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="color1">#4F2C02</color>
     <color name="color2">#FFDCB3</color>
     <color name="color3">#E5E5E5</color>
-    <color name="color4">#757575</color>
+    <color name="button_background">#C5C5C5</color>
+    <color name="button_background2">#595959</color>
     <color name="fon">#FFF0E0</color>
     <color name="fon_dark">#291D12</color>
+    <color name="light_primary">#6200EE</color>
+    <color name="dark_primary">#BB86FC</color>
+    <color name="black">#000000</color>
+
 </resources>
