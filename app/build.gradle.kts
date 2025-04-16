@@ -37,6 +37,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -79,7 +82,14 @@ dependencies {
     implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
 
     // Связь с Google Fit
-    implementation ("com.google.android.gms:play-services-fitness:21.1.0")
+    //implementation ("com.google.android.gms:play-services-fitness:21.1.0")
 
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    implementation ("com.google.android.material:material:1.11.0")
+
+    //  implementation("com.jjoe64:graphview:4.2.2") {
+ //      exclude(group = "com.android.support", module = "support-compat")
+ //  }
 
 }

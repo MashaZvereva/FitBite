@@ -28,3 +28,11 @@ data class RecipeProduct(
     val amount: Int,
     val metric: String
 ) : Parcelable
+
+@Parcelize
+data class FavoriteRecipe(
+    val id: Int,
+    val userId: Int,
+    val recipe: Recipe,
+    val dateAdded: String
+) : Parcelable

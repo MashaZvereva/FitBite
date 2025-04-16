@@ -1,15 +1,14 @@
 package com.example.fitbite.presentation.view
 
-import android.content.Context
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.util.Log
+import android.widget.Button
 import android.widget.EditText
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,26 +18,11 @@ import com.example.fitbite.data.repository.ProductRepository
 import com.example.fitbite.presentation.adapter.ProductAdapter
 import kotlinx.coroutines.launch
 
-class ProductDialogFragment : DialogFragment() {
+class ProductListFragment : Fragment() {
 
     private val productRepository = ProductRepository()
     private lateinit var productAdapter: ProductAdapter
     private var allProducts: List<Product> = emptyList()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Применяем текущую тему в зависимости от глобальной настройки
-        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-
-        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
-            // Темная тема
-            setStyle(STYLE_NORMAL, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-        } else {
-            // Светлая тема
-            setStyle(STYLE_NORMAL, android.R.style.Theme_Light_NoTitleBar_Fullscreen)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

@@ -6,23 +6,57 @@
     android:elevation="4dp">
 
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="8dp">
 
-        <ImageView
-            android:id="@+id/recipe_image"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/placeholder"/>
+        <!-- Картинка + кнопки в строку -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
 
+            <ImageView
+                android:id="@+id/recipe_image"
+                android:layout_width="196dp"
+                android:layout_height="150dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="80dp"> <!-- Увеличен отступ -->
+
+                <Button
+                    android:id="@+id/removeFavoriteButton"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="-"
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/add_button"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:text="+"
+                android:textSize="18sp"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Название, описание, калории -->
         <TextView
             android:id="@+id/recipe_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Название рецепта"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -30,15 +64,18 @@
             android:id="@+id/recipe_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp" />
+            android:text="Описание рецепта"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"/>
 
         <TextView
             android:id="@+id/recipe_calories"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Калории: 300"
             android:textSize="14sp"
             android:layout_marginTop="6dp"/>
-    </LinearLayout>
 
+    </LinearLayout>
 
 </androidx.cardview.widget.CardView>

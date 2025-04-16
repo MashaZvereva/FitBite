@@ -1,0 +1,25 @@
+<!-- res/layout/fragment_recipe_list.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Строка поиска -->
+    <EditText
+        android:id="@+id/searchRecipeEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Поиск рецептов"
+        android:inputType="text"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- RecyclerView для отображения списка рецептов -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recipesRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

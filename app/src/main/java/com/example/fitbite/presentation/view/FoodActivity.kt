@@ -1,19 +1,27 @@
 package com.example.fitbite.presentation.view
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fitbite.R
 import com.example.fitbite.data.model.Recipe
+import com.example.fitbite.data.network.RetrofitInstance
 import com.example.fitbite.data.repository.RecipeRepository
+import com.example.fitbite.data.storage.SessionManager
 import com.example.fitbite.presentation.adapter.RecipeAdapter
+import com.example.fitbite.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 class FoodActivity : AppCompatActivity() {
@@ -32,12 +40,28 @@ class FoodActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recipesRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // рецепт адаптор
-        recipeAdapter = RecipeAdapter(emptyList()) { recipe ->
-            val fragment = RecipeDetailFragment.newInstance(recipe)
-            fragment.show(supportFragmentManager, "RecipeDetail")
-        }
+        // Рецепт адаптер
+        recipeAdapter = RecipeAdapter(
+            emptyList(),
+            onRecipeClick = { recipe ->
+                // Обработчик клика на рецепт, открытие детального фрагмента
+                val fragment = RecipeDetailFragment.newInstance(recipe)
+                fragment.show(supportFragmentManager, "RecipeDetail")
+            },
+            isFoodActivity = true // Указываем, что это
+        )
         recyclerView.adapter = recipeAdapter
+
+
+
+        // Кнопка для перехода в избранные рецепты
+        findViewById<Button>(R.id.viewFavoritesButton).setOnClickListener {
+            val fragment = FavoriteRecipeFragment()
+            supportFragmentManager.beginTransaction()
+                .replace(android.R.id.content, fragment) // или R.id.fragment_container, если есть
+                .addToBackStack(null)
+                .commit()
+        }
 
 
         // Поиск по названию рецепта

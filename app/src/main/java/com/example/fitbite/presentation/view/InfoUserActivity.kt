@@ -4,12 +4,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -18,15 +13,23 @@ import com.example.fitbite.data.model.UserParameters
 import com.example.fitbite.data.network.RetrofitInstance
 import com.example.fitbite.presentation.viewmodel.AuthViewModel
 import com.example.fitbite.presentation.viewmodel.InfoUserViewModel
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.ValueFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import kotlin.math.abs
 
 class InfoUserActivity : AppCompatActivity() {
 
     private val apiService = RetrofitInstance.api
     private lateinit var sharedPreferences: SharedPreferences
     val authViewModel: AuthViewModel by viewModels()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,8 +46,8 @@ class InfoUserActivity : AppCompatActivity() {
         }
 
         // Инициализация полей
-        val welcomeTextView: TextView = findViewById(R.id.welcomeTextView)
         val weightEditText: EditText = findViewById(R.id.weightEditText)
+        val targetweightEditText: EditText = findViewById(R.id.targetweightEditText)
         val heightEditText: EditText = findViewById(R.id.heightEditText)
         val ageEditText: EditText = findViewById(R.id.ageEditText)
         val genderSpinner: Spinner = findViewById(R.id.genderSpinner)
@@ -54,9 +57,11 @@ class InfoUserActivity : AppCompatActivity() {
         val caloriesResultTextView: TextView = findViewById(R.id.caloriesResultTextView)
         val bmiResultTextView: TextView = findViewById(R.id.bmiResultTextView)
         val waterIntakeTextView: TextView = findViewById(R.id.waterIntakeTextView)
+        val chart = findViewById<LineChart>(R.id.weightLineChart)
+        val entries = ArrayList<com.github.mikephil.charting.data.Entry>()
 
 
-
+        targetweightEditText.visibility = EditText.GONE
 
         // Подключаем адаптеры для спиннеров
         val genderAdapter = ArrayAdapter.createFromResource(
@@ -83,53 +88,141 @@ class InfoUserActivity : AppCompatActivity() {
         resultAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         resultSpinner.adapter = resultAdapter
 
+
+        resultSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?, view: View?, position: Int, id: Long
+            ) {
+                val selectedGoal = resultSpinner.selectedItem.toString()
+                // Показываем поле, если цель НЕ "Поддержание веса"
+                if (selectedGoal == "Поддержание веса") {
+                    targetweightEditText.visibility = EditText.GONE
+                } else {
+                    targetweightEditText.visibility = EditText.VISIBLE
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
         // Обработчик нажатия кнопки для расчета
         calculateButton.setOnClickListener {
             val weight = weightEditText.text.toString().toFloatOrNull()
+            val target_weight = targetweightEditText.text.toString().toFloatOrNull()
             val height = heightEditText.text.toString().toIntOrNull()
             val age = ageEditText.text.toString().toIntOrNull()
             val gender = genderSpinner.selectedItem.toString()
-            val activity_level = activitySpinner.selectedItem.toString()
+            val activityLevel = activitySpinner.selectedItem.toString()
             val goal = resultSpinner.selectedItem.toString()
 
             if (weight == null || height == null || age == null) {
                 Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            if (target_weight == null) {
+                Toast.makeText(this, "Введите желаемый вес", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (goal == "Набор массы" && target_weight < weight) {
+                Toast.makeText(
+                    this,
+                    "Целевой вес должен быть больше текущего для набора массы",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+            if ((goal == "Быстрое похудение" || goal == "Умеренное похудение") && target_weight > weight) {
+                Toast.makeText(
+                    this,
+                    "Целевой вес должен быть меньше текущего для похудения",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
 
             val infoUserViewModel = InfoUserViewModel()
 
             // Обновление параметров пользователя
-            val userParameters = UserParameters(height, age, weight, gender, activity_level, goal)
+            val userParameters =
+                UserParameters(height, age, weight, target_weight, gender, activityLevel, goal)
 
             // Рассчитываем норму воды
-            val waterIntake = infoUserViewModel.calculateWaterIntake(weight, age, gender, activity_level, goal)
+            val waterIntake =
+                infoUserViewModel.calculateWaterIntake(weight, age, gender, activityLevel, goal)
+
             // Отображаем результат нормы воды
             waterIntakeTextView.text = "Норма воды: %.2f литра".format(waterIntake)
 
-            // Рассчитываем норму калорий в зависимости от выбранных параметров
-            val calories = infoUserViewModel.calculateCalories(weight, height, age, gender,activity_level, goal)
+
+            // Получаем норму калорий (целевую) и поддержку веса
+            val (targetCalories) = infoUserViewModel.calculateCaloriesAndWeightChange(
+                weight,
+                height,
+                age,
+                gender,
+                activityLevel,
+                goal
+            )
+
             // Отображаем результат
-            caloriesResultTextView.text = "Ваша норма калорий: $calories ккал"
+            caloriesResultTextView.text =
+                "Ваша норма калорий: $targetCalories ккал"
+
+            // Расчет времени похудения
+            val timeToReach = calculateTimeToReachTargetWeight(
+                weight,
+                target_weight,
+                height,
+                age,
+                gender,
+                activityLevel,
+                goal
+            )
+
+            val timeDescription = if (timeToReach != null) {
+                "Ориентировочно вы достигнете цели за ${timeToReach.first} дней (~${timeToReach.second} недель)."
+            } else {
+                "Цель уже достигнута или темп изменения слишком мал."
+            }
+
+            // Добавим это к TextView с калориями:
+            caloriesResultTextView.text =
+                "Ваша норма калорий: $targetCalories ккал\n$timeDescription"
+
 
             // Рассчитываем индекс массы тела
             val bmi = infoUserViewModel.calculateBMI(weight, height)
             // Определяем категорию ИМТ и выводим соответствующее сообщение
             val bmiCategory = when {
                 bmi < 18.5 -> {
-                    val requiredWeightToGain = infoUserViewModel.calculateWeightToGain(bmi, weight, height)
-                    "ИМТ: %.2f Недостаточный вес. \n\nДля нормализации нужно набрать минимум %.2f кг.".format(bmi, requiredWeightToGain)
+                    val requiredWeightToGain =
+                        infoUserViewModel.calculateWeightToGain(bmi, weight, height)
+                    "ИМТ: %.2f Недостаточный вес. \n\nДля нормализации нужно набрать минимум %.2f кг.".format(
+                        bmi,
+                        requiredWeightToGain
+                    )
                 }
+
                 bmi in 18.5..24.9 -> {
                     "ИМТ: %.2f Нормальный вес.".format(bmi)
                 }
+
                 bmi in 25.0..29.9 -> {
-                    val requiredWeightToLose = infoUserViewModel.calculateWeightToLose(bmi, weight, height)
-                    "ИМТ: %.2f Избыточный вес. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
+                    val requiredWeightToLose =
+                        infoUserViewModel.calculateWeightToLose(bmi, weight, height)
+                    "ИМТ: %.2f Избыточный вес. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(
+                        bmi,
+                        requiredWeightToLose
+                    )
                 }
+
                 else -> {
-                    val requiredWeightToLose = infoUserViewModel.calculateWeightToLose(bmi, weight, height)
-                    "ИМТ: %.2f Ожирение. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
+                    val requiredWeightToLose =
+                        infoUserViewModel.calculateWeightToLose(bmi, weight, height)
+                    "ИМТ: %.2f Ожирение. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(
+                        bmi,
+                        requiredWeightToLose
+                    )
                 }
             }
             bmiResultTextView.text = bmiCategory
@@ -143,56 +236,119 @@ class InfoUserActivity : AppCompatActivity() {
                     Toast.makeText(this, "Ошибка авторизации", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
-    }
 
-    // Обновляет видимость элементов в зависимости от того, авторизован ли пользователь
-    private fun updateUI(user: FirebaseUser?) {
-        val welcomeTextView: TextView = findViewById(R.id.welcomeTextView)
-        // Очистить поля перед обновлением данных
-        clearFields()
-        if (user != null) {
-            // Логирование для проверки данных пользователя
-            Log.d("InfoUserActivity", "User displayName: ${user.displayName}, User email: ${user.email}")
-            // Отображаем имя пользователя или email, если displayName не доступно
-            val displayNameOrEmail = user.displayName ?: user.email
-            if (!displayNameOrEmail.isNullOrEmpty()) {
-                welcomeTextView.text = "Добро пожаловать, $displayNameOrEmail!"
-            } else {
-                welcomeTextView.text = "Добро пожаловать!"
+            // Рассчитываем разницу между текущим и целевым весом
+            if (target_weight != null && weight != null) {
+                entries.clear()
+                // Рассчитываем время, необходимое для достижения целевого веса
+                val daysNeeded = calculateTimeToReachTargetWeight(weight, target_weight, height, age, gender, activityLevel, goal)?.first
+
+                // Проверка на null для daysNeeded
+                if (daysNeeded != null) {
+                    // Промежуточные даты
+                    val startDate = Calendar.getInstance() // Текущая дата
+                    val midDate1 = Calendar.getInstance()
+                    val midDate2 = Calendar.getInstance()
+                    val midDate3 = Calendar.getInstance()
+                    val targetDate = Calendar.getInstance()
+
+                    // Добавляем дни до промежуточных и целевой дат
+                    midDate1.add(Calendar.DAY_OF_YEAR, (daysNeeded * 0.25).toInt()) // 25% от времени
+                    midDate2.add(Calendar.DAY_OF_YEAR, (daysNeeded * 0.5).toInt()) // 50% от времени
+                    midDate3.add(Calendar.DAY_OF_YEAR, (daysNeeded * 0.75).toInt()) // 75% от времени
+                    targetDate.add(Calendar.DAY_OF_YEAR, daysNeeded) // Целевая дата
+
+                    // Промежуточные веса (можно сделать по-разному, например, линейно интерполировать)
+                    val weightMid1 = weight + (target_weight - weight) * 0.25f
+                    val weightMid2 = weight + (target_weight - weight) * 0.5f
+                    val weightMid3 = weight + (target_weight - weight) * 0.75f
+
+                    // Добавляем точки на график
+                    entries.add(Entry(0f, weight)) // Начальный вес
+                    entries.add(Entry(0.25f, weightMid1)) // Промежуточный вес (25%)
+                    entries.add(Entry(0.5f, weightMid2)) // Промежуточный вес (50%)
+                    entries.add(Entry(0.75f, weightMid3)) // Промежуточный вес (75%)
+                    entries.add(Entry(1f, target_weight)) // Целевой вес
+
+                    // Настройка графика
+                    val dataSet = LineDataSet(entries, "").apply {
+                        color = resources.getColor(R.color.green, null)
+                        valueTextSize = 14f
+                        lineWidth = 3f
+                        setCircleColor(resources.getColor(R.color.green, null))
+                        circleRadius = 5f
+                    }
+
+                    val lineData = LineData(dataSet)
+                    chart.data = lineData
+                    chart.axisRight.isEnabled = false
+                    chart.axisLeft.axisMinimum = 0f
+                    chart.description.isEnabled = false
+                    chart.legend.isEnabled = false
+                    chart.xAxis.apply {
+                        position = XAxis.XAxisPosition.BOTTOM
+                        granularity = 0.25f // Уменьшаем шаг, чтобы отобразить промежуточные даты
+                        valueFormatter = object : ValueFormatter() {
+                            override fun getFormattedValue(value: Float): String {
+                                return when (value) {
+                                    0f -> SimpleDateFormat("dd MMM", Locale.getDefault()).format(startDate.time) // Сегодняшняя дата
+                                    0.25f -> SimpleDateFormat("dd MMM", Locale.getDefault()).format(midDate1.time) // Промежуточная дата 25%
+                                    0.5f -> SimpleDateFormat("dd MMM", Locale.getDefault()).format(midDate2.time) // Промежуточная дата 50%
+                                    0.75f -> SimpleDateFormat("dd MMM", Locale.getDefault()).format(midDate3.time) // Промежуточная дата 75%
+                                    1f -> SimpleDateFormat("dd MMM", Locale.getDefault()).format(targetDate.time) // Целевая дата
+                                    else -> ""
+                                }
+                            }
+                        }
+                    }
+                    // Зеленый цвет для текста всех элементов графика
+                    val greenColor = resources.getColor(R.color.green, null)
+                    chart.xAxis.textColor = greenColor
+                    chart.axisLeft.textColor = greenColor
+                    chart.axisRight.textColor = greenColor
+                    chart.legend.textColor = greenColor
+                    chart.description.textColor = greenColor
+                    dataSet.setCircleColor(greenColor)
+                    dataSet.valueTextColor = greenColor
+
+                    // Устанавливаем размер текста для осей
+                    chart.xAxis.textSize = 12f
+                    chart.axisLeft.textSize = 12f
+
+                    // Разрешаем рисовать не только 0 и 1 на оси X, добавляем промежуточные значения
+                    chart.xAxis.apply {
+                        axisMinimum = 0f
+                        axisMaximum = 1f
+                        setLabelCount(5, false) // Устанавливаем 5 меток на оси X
+                    }
+
+                    chart.invalidate() // Обновление графика
+                }
+                if (goal == "Поддержание веса") {
+                    // Только начальная и конечная точки с одинаковым весом
+                    entries.add(Entry(0f, weight))
+                    entries.add(Entry(1f, weight))
+
+                    chart.invalidate() // Обновление графика
+                }
             }
-        } else {
-            // Если пользователь не авторизован, отображаем дефолтное приветствие
-            welcomeTextView.text = "Добро пожаловать!"
         }
     }
 
-    // Метод для отображения данных в UI
-    private fun displayUserData(userData: UserParameters) {
+
+            private fun displayUserData(userData: UserParameters) {
         findViewById<EditText>(R.id.weightEditText).setText(userData.weight?.toString() ?: "")
+        findViewById<EditText>(R.id.targetweightEditText).setText(userData.target_weight?.toString() ?: "")
         findViewById<EditText>(R.id.heightEditText).setText(userData.height?.toString() ?: "")
         findViewById<EditText>(R.id.ageEditText).setText(userData.age?.toString() ?: "")
 
-        // Проверка на null для gender, activity_level и goal
         findViewById<Spinner>(R.id.genderSpinner).setSelection(getGenderIndex(userData.gender ?: ""))
         findViewById<Spinner>(R.id.activitySpinner).setSelection(getActivityIndex(userData.activity_level ?: ""))
         findViewById<Spinner>(R.id.resultSpinner).setSelection(getResultIndex(userData.goal ?: ""))
 
-        val calculateButton: Button = findViewById(R.id.calculateButton)
-        calculateButton.performClick()
+        findViewById<Button>(R.id.calculateButton).performClick()
     }
 
-    // Метод для отображения полей для ввода данных, если данных нет
-    private fun showInputFields() {
-        findViewById<EditText>(R.id.weightEditText).visibility = View.VISIBLE
-        findViewById<EditText>(R.id.heightEditText).visibility = View.VISIBLE
-        findViewById<EditText>(R.id.ageEditText).visibility = View.VISIBLE
-        findViewById<Spinner>(R.id.genderSpinner).visibility = View.VISIBLE
-        findViewById<Spinner>(R.id.activitySpinner).visibility = View.VISIBLE
-        findViewById<Spinner>(R.id.resultSpinner).visibility = View.VISIBLE
-    }
-
-    // Функции для получения индексов из Spinner
     private fun getGenderIndex(gender: String): Int {
         val genders = resources.getStringArray(R.array.genders)
         return genders.indexOf(gender ?: "")
@@ -208,73 +364,42 @@ class InfoUserActivity : AppCompatActivity() {
         return results.indexOf(result ?: "")
     }
 
-    // Очистить все поля, включая рассчитанные данные (ИМТ, калории)
-    private fun clearFields() {
-        // Очистить данные ввода
-        findViewById<EditText>(R.id.weightEditText).text.clear()
-        findViewById<EditText>(R.id.heightEditText).text.clear()
-        findViewById<EditText>(R.id.ageEditText).text.clear()
-        findViewById<Spinner>(R.id.genderSpinner).setSelection(0)  // сброс значения
-        findViewById<Spinner>(R.id.activitySpinner).setSelection(0)  // сброс значения
-        findViewById<Spinner>(R.id.resultSpinner).setSelection(0)    // сброс значения
-        // Очистить рассчитанные значения ИМТ и калории
-        findViewById<TextView>(R.id.bmiResultTextView).text = ""
-        findViewById<TextView>(R.id.caloriesResultTextView).text = ""
-        findViewById<TextView>(R.id.waterIntakeTextView).text = ""
-    }
-
-    // Метод для получения данных пользователя с сервера Django
     private fun getUserData(token: String) {
         lifecycleScope.launch {
             try {
-                // Заголовок Authorization с токеном
                 val response = apiService.getUserParameters("Bearer $token")
-
                 if (response.isSuccessful) {
-                    // Если запрос успешен, отображаем полученные данные
-                    val userData = response.body()
-
-                    userData?.let {
-                        // Преобразуем данные на русский язык с помощью нашей функции
+                    response.body()?.let {
                         val updatedUserData = convertUserDataToRussian(it)
-
-                        // Обновляем отображение данных с преобразованными значениями
-                        displayUserData(updatedUserData)  // Отображаем данные в UI
+                        displayUserData(updatedUserData)
                     }
                 } else {
-                    // Если токен невалиден или произошла ошибка, отправляем на экран авторизации
                     Log.e("InfoUserActivity", "Error: ${response.code()} - Unauthorized")
-                    finish()  // Закрываем текущую активность
+                    finish()
                 }
             } catch (e: Exception) {
                 Log.e("InfoUserActivity", "Error: ${e.message}")
             }
         }
     }
-    // Метод для отправки данных пользователя с сервера Django
+
     private fun updateUserData(token: String, userData: UserParameters) {
         lifecycleScope.launch {
-            // Преобразуем данные перед отправкой на сервер
             val updatedUserData = convertUserDataToEnglish(userData)
-
             try {
-                // Отправляем запрос с обновленными данными
                 val response = apiService.updateUserParameters("Bearer $token", updatedUserData)
-
                 if (response.isSuccessful) {
-                    // Если запрос успешен, обновляем UI или отображаем сообщение
                     Log.d("InfoUserActivity", "User data updated successfully")
-                    // Обновляем UI с новыми данными
                 } else {
-                    Log.e("InfoUserActivity", "Error: ${response.code()} - ${response.message()}")
-                    // Обработать ошибку (например, показать сообщение об ошибке)
+                    Log.e("InfoUserActivity", "Error: ${response.code()} - Unauthorized")
                 }
             } catch (e: Exception) {
                 Log.e("InfoUserActivity", "Error: ${e.message}")
             }
         }
     }
-    // Функция для преобразования данных с английского на русский
+
+// Функция для преобразования данных с английского на русский
     fun convertUserDataToRussian(userData: UserParameters): UserParameters {
         val gender = when (userData.gender) {
             "male" -> "Мужской"
@@ -337,254 +462,43 @@ class InfoUserActivity : AppCompatActivity() {
             goal = goal
         )
     }
+
+    private fun calculateTimeToReachTargetWeight(
+        currentWeight: Float,
+        targetWeight: Float,
+        height: Int,
+        age: Int,
+        gender: String,
+        activityLevel: String,
+        goal: String
+    ): Pair<Int, Int>? {
+        // Создаем временный ViewModel
+        val viewModel = InfoUserViewModel()
+
+        // Получаем ориентировочную норму калорий и изменение веса
+        val (_, weightChangePerMonth) = viewModel.calculateCaloriesAndWeightChange(
+            currentWeight,
+            height,
+            age,
+            gender,
+            activityLevel,
+            goal
+        )
+
+        val weightDiff = abs(currentWeight - targetWeight).toDouble()
+
+        // Проверка: цель уже достигнута или слишком маленькое изменение веса
+        if (weightDiff < 0.1 || weightChangePerMonth == 0.0f) return null
+
+        // Применяем поправочный коэффициент (например, вес уходит быстрее на 30%)
+        val adjustmentFactor = 1.5f
+        val adjustedWeightChange = weightChangePerMonth * adjustmentFactor
+
+        val monthsNeeded = weightDiff / abs(adjustedWeightChange)
+        val daysNeeded = (monthsNeeded * 30).toInt()
+        val weeksNeeded = daysNeeded / 7
+
+        return Pair(daysNeeded, weeksNeeded)
+    }
 }
-
-
-
-
-
-
-
-
-
-
-//   override fun onCreate(savedInstanceState: Bundle?) {
-//       super.onCreate(savedInstanceState)
-//       setContentView(R.layout.activity_info_user)
-
-//       auth = FirebaseAuth.getInstance()
-
-//       // Загрузка данных пользователя при старте
-//       authViewModel.getUserData { userData ->
-//           if (userData != null) {
-//               // Используйте userData для отображения
-//               updateUI(auth.currentUser)
-//               displayUserData(userData)
-//           } else {
-//               // Покажите поля для ввода данных, если данные не найдены
-//               showInputFields()
-//           }
-//       }
-
-//      //Инициазация полей
-//      val welcomeTextView: TextView = findViewById(R.id.welcomeTextView)
-//      val weightEditText: EditText = findViewById(R.id.weightEditText)
-//      val heightEditText: EditText = findViewById(R.id.heightEditText)
-//      val ageEditText: EditText = findViewById(R.id.ageEditText)
-//      val genderSpinner: Spinner = findViewById(R.id.genderSpinner)
-//      val activitySpinner: Spinner = findViewById(R.id.activitySpinner)
-//      val resultSpinner: Spinner = findViewById(R.id.resultSpinner)
-//      val calculateButton: Button = findViewById(R.id.calculateButton)
-//      val caloriesResultTextView: TextView = findViewById(R.id.caloriesResultTextView)
-//      val bmiResultTextView: TextView = findViewById(R.id.bmiResultTextView)
-//       val waterIntakeTextView: TextView = findViewById(R.id.waterIntakeTextView)
-
-//       //? Проверка, авторизован ли пользователь
-//       if (auth.currentUser != null) {
-//           updateUI(auth.currentUser)
-//       }
-
-//       //? Подключаем адаптеры для спиннеров
-//       val genderAdapter = ArrayAdapter.createFromResource(
-//           this,
-//           R.array.genders,
-//           android.R.layout.simple_spinner_item
-//       )
-//       genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-//       genderSpinner.adapter = genderAdapter
-
-//       val activityAdapter = ArrayAdapter.createFromResource(
-//           this,
-//           R.array.activities,
-//           android.R.layout.simple_spinner_item
-//       )
-//       activityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-//       activitySpinner.adapter = activityAdapter
-
-//       val resultAdapter = ArrayAdapter.createFromResource(
-//           this,
-//           R.array.results,
-//           android.R.layout.simple_spinner_item
-//       )
-//       resultAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-//       resultSpinner.adapter = resultAdapter
-
-//       // Обработчик нажатия кнопки для расчета
-//       calculateButton.setOnClickListener {
-//           val weight = weightEditText.text.toString().toFloatOrNull()
-//           val height = heightEditText.text.toString().toFloatOrNull()
-//           val age = ageEditText.text.toString().toIntOrNull()
-//           val gender = genderSpinner.selectedItem.toString()
-//           val activity = activitySpinner.selectedItem.toString()
-//           val result = resultSpinner.selectedItem.toString()
-
-
-
-//           if (weight == null || height == null || age == null) {
-//               Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
-//               return@setOnClickListener
-//           }
-//           val infoUserViewModel = InfoUserViewModel()
-
-//           // Рассчитываем норму воды
-//           val waterIntake = infoUserViewModel.calculateWaterIntake(weight, age, gender, activity, result)
-
-//           // Отображаем результат нормы воды
-//           waterIntakeTextView.text = "Норма воды: %.2f литра".format(waterIntake)
-
-//           // Рассчитываем норму калорий в зависимости от выбранных параметров
-//           val calories = infoUserViewModel.calculateCalories(weight, height, age, gender, activity, result)
-
-//           // Отображаем результат
-//           caloriesResultTextView.text = "Ваша норма калорий: $calories ккал"
-
-
-//           // Рассчитываем индекс массы тела
-//           val bmi = infoUserViewModel.calculateBMI(weight, height)
-
-//           // Определяем категорию ИМТ и выводим соответствующее сообщение
-//           val bmiCategory = when {
-//               bmi < 18.5 -> {
-//                   val requiredWeightToGain = infoUserViewModel.calculateWeightToGain(bmi, weight, height)
-//                   "ИМТ: %.2f Недостаточный вес. \n\nДля нормализации нужно набрать минимум %.2f кг.".format(bmi, requiredWeightToGain)
-//               }
-//               bmi in 18.5..24.9 -> {
-//                   "ИМТ: %.2f Нормальный вес.".format(bmi)
-//               }
-//               bmi in 25.0..29.9 -> {
-//                   val requiredWeightToLose = infoUserViewModel.calculateWeightToLose(bmi, weight, height)
-//                   "ИМТ: %.2f Избыточный вес. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
-//               }
-//               else -> {
-//                   val requiredWeightToLose = infoUserViewModel.calculateWeightToLose(bmi, weight, height)
-//                   "ИМТ: %.2f Ожирение. \n\nДля нормализации нужно сбросить минимум %.2f кг.".format(bmi, requiredWeightToLose)
-//               }
-//           }
-//           // Отображаем результат ИМТ
-//           bmiResultTextView.text = bmiCategory
-
-
-//           // Проверка, что все поля заполнены
-//           if ( weight != null && height != null && age != null) {
-//               // Создаем объект UserData с введенными данными
-//               val userData = UserData(
-//                   weight = weight,
-//                   height = height,
-//                   age = age,
-//                   gender = gender,
-//                   activity = activity,
-//                   result = result,
-//                   calories = calories, // Пример значения, вы можете изменить
-//                   bmi = bmi // Пример значения, вы можете изменить
-//               )
-
-//
-//           }
-//       }
-//   }
-
-
-//   override fun onStart() {
-//       super.onStart()
-
-//       // Проверка авторизации и обновление UI при старте активности
-//       val user = auth.currentUser
-//       if (user != null) {
-//           // Загружаем данные из Firestore после входа
-//           authViewModel.getUserData { userData ->
-//               if (userData != null) {
-//                   displayUserData(userData)
-//                   // После загрузки данных обновляем UI с именем или email
-//                   updateUI(user)
-//               }
-//           }
-//       } else {
-//           updateUI(null)  // Если нет авторизованного пользователя, показываем дефолтный текст
-//       }
-//   }
-
-
-//   //Обновляет видимость элементов в зависимости от того, авторизован ли пользователь
-//   private fun updateUI(user: FirebaseUser?) {
-//       val welcomeTextView: TextView = findViewById(R.id.welcomeTextView)
-
-//       // Очистить поля перед обновлением данных
-//       clearFields()
-
-//       if (user != null) {
-//           // Логирование для проверки данных пользователя
-//           Log.d("InfoUserActivity", "User displayName: ${user.displayName}, User email: ${user.email}")
-
-//           // Отображаем имя пользователя или email, если displayName не доступно
-//           val displayNameOrEmail = user.displayName ?: user.email
-//           if (!displayNameOrEmail.isNullOrEmpty()) {
-//               welcomeTextView.text = "Добро пожаловать, $displayNameOrEmail!"
-//           } else {
-//               welcomeTextView.text = "Добро пожаловать!"
-//           }
-//
-//       } else {
-//           // Если пользователь не авторизован, отображаем дефолтное приветствие
-//           welcomeTextView.text = "Добро пожаловать!"
-//       }
-//   }
-
-//
-
-//   // Метод для отображения данных в UI
-//   private fun displayUserData(userData: UserData) {
-
-//       findViewById<EditText>(R.id.weightEditText).setText(userData.weight.toString())
-//       findViewById<EditText>(R.id.heightEditText).setText(userData.height.toString())
-//       findViewById<EditText>(R.id.ageEditText).setText(userData.age.toString())
-//       findViewById<Spinner>(R.id.genderSpinner).setSelection(getGenderIndex(userData.gender))
-//       findViewById<Spinner>(R.id.activitySpinner).setSelection(getActivityIndex(userData.activity))
-//       findViewById<Spinner>(R.id.resultSpinner).setSelection(getResultIndex(userData.result))
-
-//       // Программно вызываем кнопку для расчета
-//       val calculateButton: Button = findViewById(R.id.calculateButton)
-//       calculateButton.performClick()
-//   }
-
-//   // Метод для отображения полей для ввода данных, если данных нет
-//   private fun showInputFields() {
-//       findViewById<EditText>(R.id.weightEditText).visibility = View.VISIBLE
-//       findViewById<EditText>(R.id.heightEditText).visibility = View.VISIBLE
-//       findViewById<EditText>(R.id.ageEditText).visibility = View.VISIBLE
-//       findViewById<Spinner>(R.id.genderSpinner).visibility = View.VISIBLE
-//       findViewById<Spinner>(R.id.activitySpinner).visibility = View.VISIBLE
-//       findViewById<Spinner>(R.id.resultSpinner).visibility = View.VISIBLE
-//   }
-
-//   // Функции для получения индексов из Spinner
-//   private fun getGenderIndex(gender: String): Int {
-//       val genders = resources.getStringArray(R.array.genders)
-//       return genders.indexOf(gender)
-//   }
-
-//   private fun getActivityIndex(activity: String): Int {
-//       val activities = resources.getStringArray(R.array.activities)
-//       return activities.indexOf(activity)
-//   }
-
-//   private fun getResultIndex(result: String): Int {
-//       val results = resources.getStringArray(R.array.results)
-//       return results.indexOf(result)
-//   }
-
-//   // Очистить все поля, включая рассчитанные данные (ИМТ, калории)
-//   private fun clearFields() {
-//       // Очистить данные ввода
-//       findViewById<EditText>(R.id.weightEditText).text.clear()
-//       findViewById<EditText>(R.id.heightEditText).text.clear()
-//       findViewById<EditText>(R.id.ageEditText).text.clear()
-//       findViewById<Spinner>(R.id.genderSpinner).setSelection(0)  // сброс значения
-//       findViewById<Spinner>(R.id.activitySpinner).setSelection(0)  // сброс значения
-//       findViewById<Spinner>(R.id.resultSpinner).setSelection(0)    // сброс значения
-
-//       // Очистить рассчитанные значения ИМТ и калории
-//       findViewById<TextView>(R.id.bmiResultTextView).text = ""
-//       findViewById<TextView>(R.id.caloriesResultTextView).text = ""
-//       findViewById<TextView>(R.id.waterIntakeTextView).text = ""
-//   }
 

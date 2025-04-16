@@ -3,6 +3,7 @@ package com.example.fitbite.presentation.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -12,7 +13,10 @@ import com.example.fitbite.data.model.Recipe
 
 class RecipeAdapter(
     private var recipes: List<Recipe>,
-    private val onRecipeClick: (Recipe) -> Unit
+    private val onRecipeClick: (Recipe) -> Unit,
+    private val isRecipeListFragment: Boolean = false, // Флаг, указывающий, находимся ли мы в FavoriteRecipeFragment
+    private val isFoodActivity: Boolean = false
+
 ) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
 
     inner class RecipeViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -20,6 +24,8 @@ class RecipeAdapter(
         private val description: TextView = view.findViewById(R.id.recipe_description)
         private val calories: TextView = view.findViewById(R.id.recipe_calories)
         private val imageUrl: ImageView = view.findViewById(R.id.recipe_image)
+        val addButton: Button = view.findViewById(R.id.add_button)
+        val removeFavoriteButton: Button = view.findViewById(R.id.removeFavoriteButton)
 
         fun bind(recipe: Recipe) {
             name.text = recipe.name // Название рецепта
@@ -32,6 +38,19 @@ class RecipeAdapter(
                 .error(R.drawable.error)
                 .fallback(R.drawable.placeholder)
                 .into(imageUrl)
+
+            // Устанавливаем видимость кнопок в зависимости от фрагмента
+            if (isRecipeListFragment) {
+                addButton.visibility = View.VISIBLE
+                removeFavoriteButton.visibility = View.GONE
+            } else if (isFoodActivity) {
+                addButton.visibility = View.GONE
+                removeFavoriteButton.visibility = View.GONE
+            } else {
+                // По умолчанию
+                addButton.visibility = View.GONE
+                removeFavoriteButton.visibility = View.VISIBLE
+            }
 
             // Обработка клика по элементу
             itemView.setOnClickListener {

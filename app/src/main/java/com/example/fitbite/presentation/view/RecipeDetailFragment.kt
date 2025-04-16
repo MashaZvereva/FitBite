@@ -9,10 +9,16 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.fitbite.R
+import com.example.fitbite.data.model.FavoriteRecipe
 import com.example.fitbite.data.model.Recipe
+import com.example.fitbite.data.repository.RecipeRepository
+import com.example.fitbite.data.storage.SessionManager
+import kotlinx.coroutines.launch
 
 class RecipeDetailFragment : DialogFragment() {
 
@@ -35,11 +41,11 @@ class RecipeDetailFragment : DialogFragment() {
     private lateinit var caloriesTextView: TextView
     private lateinit var portionCountText: TextView
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen)
         recipe = arguments?.getParcelable(ARG_RECIPE)
-
 
         // Применяем текущую тему в зависимости от глобальной настройки
         val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
@@ -68,13 +74,14 @@ class RecipeDetailFragment : DialogFragment() {
         val instruction = view.findViewById<TextView>(R.id.recipeInstruction)
         val cookingTime = view.findViewById<TextView>(R.id.recipeCookingTime)
         val imageView = view.findViewById<ImageView>(R.id.recipeImage)
-
+        val btnIncrease = view.findViewById<Button>(R.id.btnIncreasePortion)
+        val btnDecrease = view.findViewById<Button>(R.id.btnDecreasePortion)
+        val addToFavoritesButton = view.findViewById<Button>(R.id.addToFavoritesButton)
+        val recipeRepository = RecipeRepository()
 
         caloriesTextView = view.findViewById(R.id.recipeCalories)
         ingredientsContainer = view.findViewById(R.id.ingredientsContainer)
         portionCountText = view.findViewById(R.id.portionCountText)
-        val btnIncrease = view.findViewById<Button>(R.id.btnIncreasePortion)
-        val btnDecrease = view.findViewById<Button>(R.id.btnDecreasePortion)
 
         recipe?.let {
             title.text = it.name
@@ -108,6 +115,23 @@ class RecipeDetailFragment : DialogFragment() {
                 if (portionCount > 1) {
                     portionCount--
                     updateUI()
+                }
+            }
+            addToFavoritesButton.setOnClickListener {
+                val recipeId = recipe?.id ?: return@setOnClickListener
+                val token = SessionManager(requireContext()).fetchAuthToken()
+
+                if (token != null) {
+                    lifecycleScope.launch {
+                        val success = recipeRepository.addRecipeToFavorites(token, recipeId)
+                        Toast.makeText(
+                            context,
+                            if (success) "Рецепт добавлен в избранное" else "Рецепт уже добавлен в избранное",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(context, "Необходима авторизация", Toast.LENGTH_SHORT).show()
                 }
             }
         }

@@ -5,7 +5,7 @@ import com.example.fitbite.data.model.UserParameters
 class InfoUserViewModel {
 
     // Рассчитываем норму калорий
-     fun calculateCalories(
+    fun calculateCalories(
         weight: Float,
         height: Int?,
         age: Int,
@@ -31,6 +31,7 @@ class InfoUserViewModel {
             else -> 1.2
         }
 
+        // Суточная норма калорий для поддержания веса
         val tdee = bmr * activityFactor
 
         // Желаемый результат
@@ -41,6 +42,49 @@ class InfoUserViewModel {
             "Набор массы" -> (tdee + 300).toInt()
             else -> tdee.toInt()
         }
+    }
+
+    // Новая функция: возвращает норму калорий И изменение веса за месяц
+    fun calculateCaloriesAndWeightChange(
+        weight: Float,
+        height: Int?,
+        age: Int,
+        gender: String,
+        activity: String,
+        result: String
+    ): Pair<Int, Float> {
+        val safeHeight = height ?: return Pair(0, 0f)
+
+        val bmr = if (gender == "Женский") {
+            10 * weight + 6.25 * safeHeight - 5 * age - 161
+        } else {
+            10 * weight + 6.25 * safeHeight - 5 * age + 5
+        }
+
+        val activityFactor = when (activity) {
+            "Отсутствие физической активности" -> 1.2
+            "Легкая активность" -> 1.375
+            "Средняя активность" -> 1.55
+            "Высокая активность" -> 1.725
+            "Очень высокая активность" -> 1.9
+            else -> 1.2
+        }
+
+        val tdee = bmr * activityFactor
+
+        val recommendedCalories = when (result) {
+            "Быстрое похудение" -> tdee - 500
+            "Умеренное похудение" -> tdee - 300
+            "Поддержание веса" -> tdee
+            "Набор массы" -> tdee + 300
+            else -> tdee
+        }
+
+        val calorieDifference = recommendedCalories - tdee
+        val weightChangePerDay = calorieDifference / 7700f
+        val weightChangePerMonth = (weightChangePerDay * 30)
+
+        return Pair(recommendedCalories.toInt(), weightChangePerMonth.toFloat())
     }
 
 
@@ -107,12 +151,15 @@ class InfoUserViewModel {
             "Быстрое похудение" -> {
                 waterIntake *= 1.10f  // Увеличиваем норму воды на 10% для быстрого похудения
             }
+
             "Умеренное похудение" -> {
                 waterIntake *= 1.05f  // Увеличиваем норму воды на 5% для умеренного похудения
             }
+
             "Поддержание веса" -> {
                 // Без изменений
             }
+
             "Набор массы" -> {
                 waterIntake *= 1.05f  // Увеличиваем норму воды на 5% для набора массы
             }
@@ -120,5 +167,4 @@ class InfoUserViewModel {
 
         return waterIntake
     }
-
 }

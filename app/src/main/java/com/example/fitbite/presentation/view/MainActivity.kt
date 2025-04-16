@@ -1,41 +1,30 @@
 package com.example.fitbite.presentation.view
 
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.example.fitbite.R
 import com.example.fitbite.presentation.viewmodel.AuthViewModel
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.fitness.Fitness
-import com.google.android.gms.fitness.FitnessOptions
-import com.google.android.gms.fitness.data.DataType
 import com.google.firebase.auth.FirebaseAuth
-import android.Manifest
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import java.text.Format
-import com.google.android.gms.fitness.data.DataPoint
-import com.google.android.gms.fitness.data.Field
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.util.Log
+import com.example.fitbite.presentation.view.MealFragment
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SensorEventListener {
 
     // Хранилище для состояния темы
     private lateinit var sharedPreferences: SharedPreferences
@@ -49,21 +38,23 @@ class MainActivity : AppCompatActivity() {
     // Календарь
     private lateinit var calendarLayout: LinearLayout
 
-    ////Fit Google
-    //private lateinit var stepsTextView: TextView
-    //private lateinit var permissionLauncher: ActivityResultLauncher<IntentSenderRequest>
-    //private lateinit var fitnessOptions: FitnessOptions
-    //private val GOOGLE_FIT_REQUEST_CODE = 1001
+    // Шагометр
+    private lateinit var sensorManager: SensorManager
+    private var stepSensor: Sensor? = null
+    private var stepsAtStart = -1
+    private lateinit var stepsTextView: TextView
 
-
+    // Трекер воды
+    private lateinit var waterTextView: TextView
+    private var waterIntake: Int = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         sharedPreferences = getSharedPreferences("user_preferences", MODE_PRIVATE)
-
 
         // Проверка токена
         authViewModel.getToken { token ->
@@ -92,18 +83,17 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnFood).setOnClickListener {
             startActivity(Intent(this, FoodActivity::class.java))
         }
-        findViewById<Button>(R.id.btnActivity).setOnClickListener {
-            // Создаем новый экземпляр ActivityDialogFragment
-            val fragment = ActivityDialogFragment()
-
-            // Отображаем фрагмент как диалог
-            fragment.show(supportFragmentManager, fragment.tag)
-        }
-        findViewById<Button>(R.id.btnProduct).setOnClickListener {
-            val fragment = ProductDialogFragment()
-            fragment.show(supportFragmentManager, fragment.tag)
-        }
-
+       // findViewById<Button>(R.id.btnActivity).setOnClickListener {
+       //     // Создаем новый экземпляр ActivityDialogFragment
+       //     val fragment = ActivityDialogFragment()
+//
+       //     // Отображаем фрагмент как диалог
+       //     fragment.show(supportFragmentManager, fragment.tag)
+       // }
+       // findViewById<Button>(R.id.btnProduct).setOnClickListener {
+       //     val fragment = ProductDialogFragment()
+       //     fragment.show(supportFragmentManager, fragment.tag)
+       // }
 
         // Часы
         clockView = findViewById(R.id.clockView)
@@ -171,10 +161,41 @@ class MainActivity : AppCompatActivity() {
             startOfWeek.add(Calendar.DAY_OF_MONTH, 1)
         }
 
+        // Шагометр
+        stepsTextView = findViewById(R.id.stepsTextView)
+        setupStepSensor()
 
-       // stepsTextView = findViewById(R.id.stepsTextView)
-       // setupGoogleFit()
+
+        // Кнопки для перехода на фрагменты
+        findViewById<Button>(R.id.btnBreakfast).setOnClickListener {
+            openMealFragment("Завтрак")
+            Log.d("MainActivity", "Кнопка Завтрак нажата")
+            openMealFragment("Завтрак")
+        }
+        findViewById<Button>(R.id.btnLunch).setOnClickListener {
+            openMealFragment("Обед")
+        }
+        findViewById<Button>(R.id.btnDinner).setOnClickListener {
+            openMealFragment("Ужин")
+        }
+        findViewById<Button>(R.id.btnSnack).setOnClickListener {
+            openMealFragment("Перекус")
+        }
     }
+
+
+    private fun openMealFragment(mealType: String) {
+        val fragment = MealFragment.newInstance(mealType)
+
+        // Начинаем транзакцию
+        val transaction = supportFragmentManager.beginTransaction()
+
+        // Просто добавляем фрагмент в активити (не обязательно использовать контейнер)
+        transaction.replace(android.R.id.content, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
 
     // Функция для применения выбранной темы
     private fun applyTheme(isDarkMode: Boolean) {
@@ -209,58 +230,46 @@ class MainActivity : AppCompatActivity() {
         messageTextView.text = message
     }
 
-   // private fun setupGoogleFit() {
-   //     fitnessOptions = FitnessOptions.builder()
-   //         .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-   //         .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_READ)
-   //         .build()
-//
-   //     permissionLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-   //         if (result.resultCode == RESULT_OK) {
-   //             val account = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
-   //             fetchSteps(account)
-   //         } else {
-   //             Toast.makeText(this, "Google Fit разрешение не предоставлено", Toast.LENGTH_SHORT).show()
-   //         }
-   //     }
-//
-   //     checkGoogleFitPermission()
-   // }
-//
-//
-   // private fun checkGoogleFitPermission() {
-   //     val account = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
-//
-   //     if (!GoogleSignIn.hasPermissions(account, fitnessOptions)) {
-   //         GoogleSignIn.requestPermissions(
-   //             this,
-   //             1, // requestCode (обрабатывается в onActivityResult, если нужно)
-   //             account,
-   //             fitnessOptions
-   //         )
-   //     } else {
-   //         fetchSteps(account)
-   //     }
-   // }
-//
-//
-   // private fun fetchSteps(account: GoogleSignInAccount) {
-   //     Fitness.getHistoryClient(this, account)
-   //         .readDailyTotal(DataType.TYPE_STEP_COUNT_DELTA)
-   //         .addOnSuccessListener { dataSet ->
-   //             val totalSteps = if (dataSet.isEmpty) 0 else {
-   //                 val dataPoint = dataSet.dataPoints[0]
-   //                 dataPoint.getValue(Field.FIELD_STEPS).asInt()
-   //             }
-//
-   //             stepsTextView.text = "Шаги сегодня: $totalSteps"
-   //         }
-   //         .addOnFailureListener {
-   //             Toast.makeText(this, "Ошибка при получении шагов", Toast.LENGTH_SHORT).show()
-   //         }
-   // }
+    private fun setupStepSensor() {
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+
+        if (stepSensor != null) {
+            Log.d("SensorCheck", "Шагомер найден!")
+            // Подключай слушатель
+        } else {
+            Log.e("SensorCheck", "Датчик шагов не найден!")
+        }
+    }
+
+        override fun onResume() {
+        super.onResume()
+        stepSensor?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this)
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
+            val steps = event.values[0].toInt()
+            if (stepsAtStart == -1) {
+                stepsAtStart = steps
+            }
+            val currentSteps = steps - stepsAtStart
+            stepsTextView.text = "Шаги сегодня: $currentSteps"
+        }
+    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        // Метод обязателен, даже если не используется
+    }
 
 }
+
 
 
 

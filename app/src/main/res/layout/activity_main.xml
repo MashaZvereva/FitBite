@@ -11,14 +11,9 @@
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-    </FrameLayout>
+        android:layout_height="match_parent" />
 
     <!-- Кастомный виджет для отображения часов -->
-
-    <!-- Сообщение -->
-
     <com.example.fitbite.presentation.view.ClockView
         android:id="@+id/clockView"
         android:layout_width="300dp"
@@ -47,80 +42,106 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
+        android:layout_marginTop="20dp" />
+
+    <!-- Шагометр и Трекер воды в одной линии -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/calendarLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center"
         android:layout_marginTop="20dp">
+
+        <TextView
+            android:id="@+id/stepsTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Шаги сегодня: 0"
+            android:textSize="18sp"
+            android:layout_marginEnd="20dp"/>
+
+        <TextView
+            android:id="@+id/waterTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Вода: 0 мл"
+            android:textSize="18sp" />
     </LinearLayout>
 
-    <!-- Кнопка для перехода на InfoUserActivity -->
+    <!-- Кнопки для пищи -->
+    <Button
+        android:id="@+id/btnBreakfast"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Завтрак"
+        app:layout_constraintTop_toBottomOf="@+id/calendarLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.1"
+        android:layout_marginTop="60dp" />
+
+    <Button
+        android:id="@+id/btnLunch"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Обед"
+        app:layout_constraintTop_toBottomOf="@+id/btnBreakfast"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.1" />
+
+    <Button
+        android:id="@+id/btnDinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Ужин"
+        app:layout_constraintTop_toBottomOf="@+id/btnLunch"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.1" />
+
+    <Button
+        android:id="@+id/btnSnack"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Перекус"
+        app:layout_constraintTop_toBottomOf="@+id/btnDinner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.1" />
+
+    <!-- Кнопки для перехода на другие активности (вертикальная цепочка) -->
     <Button
         android:id="@+id/btnInfoUser"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
         android:text="Info User"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintTop_toBottomOf="@+id/btnSnack"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.846" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
 
-    <!-- Кнопка для перехода на SettingsActivity -->
     <Button
         android:id="@+id/btnSettings"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
         android:text="Settings"
-        app:layout_constraintBottom_toTopOf="@+id/btnInfoUser"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintTop_toBottomOf="@+id/btnInfoUser"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.961" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
 
-    <!-- Кнопка для перехода на FoodActivity -->
     <Button
         android:id="@+id/btnFood"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
         android:text="Food"
-        app:layout_constraintBottom_toTopOf="@+id/btnSettings"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintTop_toBottomOf="@+id/btnSettings"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.956" />
-
-    <!-- Кнопка для перехода на Фрагмент активности -->
-    <Button
-        android:id="@+id/btnActivity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Добавить активность"
-        app:layout_constraintBottom_toTopOf="@+id/btnFood"
-        android:layout_marginTop="16dp"/>
-
-    <!-- Кнопка для перехода на Фрагмент продуктов -->
-    <Button
-        android:id="@+id/btnProduct"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Добавить продукт"
-        app:layout_constraintBottom_toTopOf="@+id/btnActivity"
-        android:layout_marginTop="16dp"/>
-
-    <!-- Шагометр -->
-    <TextView
-        android:id="@+id/stepsTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Шаги сегодня: 0"
-        android:textSize="18sp"
-        android:layout_marginTop="20dp"
-        android:layout_centerHorizontal="true"
-        app:layout_constraintBottom_toTopOf="@+id/btnProduct"/>
-
-
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
