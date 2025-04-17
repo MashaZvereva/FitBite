@@ -22,11 +22,11 @@ class FavoriteRecipeAdapter(
     inner class RecipeViewHolder(private val binding: ItemRecipeBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-            val addButton = binding.addButton
-            val removeFavoriteButton = binding.removeFavoriteButton
+        val addButton = binding.addButton
+        val removeFavoriteButton = binding.removeFavoriteButton
+        val portionInput = binding.portionInput // Добавим переменную для EditText
 
-
-            fun bind(favoriteRecipe: FavoriteRecipe) {
+        fun bind(favoriteRecipe: FavoriteRecipe) {
             binding.recipeName.text = favoriteRecipe.recipe.name
             binding.recipeDescription.text = favoriteRecipe.recipe.description
             binding.recipeCalories.text = "Калории: ${favoriteRecipe.recipe.calories}"
@@ -41,9 +41,11 @@ class FavoriteRecipeAdapter(
             if (isFavoriteFragment) {
                 addButton.visibility = View.GONE
                 removeFavoriteButton.visibility = View.VISIBLE
+                portionInput.visibility = View.GONE // Скрыть EditText в фрагменте избранных рецептов
             } else {
                 addButton.visibility = View.GONE
                 removeFavoriteButton.visibility = View.GONE
+                portionInput.visibility = View.VISIBLE // Показываем EditText, если не избранный рецепт
             }
 
             binding.removeFavoriteButton.setOnClickListener {

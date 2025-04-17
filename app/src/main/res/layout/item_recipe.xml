@@ -30,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginStart="80dp"> <!-- Увеличен отступ -->
+                android:layout_marginStart="0dp"> <!-- Увеличен отступ -->
 
                 <Button
                     android:id="@+id/removeFavoriteButton"
@@ -39,8 +39,19 @@
                     android:text="-"
                     android:textSize="14sp"
                     android:layout_marginTop="8dp"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    android:layout_marginStart="80dp"/>
             </LinearLayout>
+
+            <EditText
+                android:id="@+id/portion_input"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:hint="кол-во"
+                android:inputType="number"
+                android:maxLines="1"
+                android:layout_marginStart="8dp"
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/add_button"

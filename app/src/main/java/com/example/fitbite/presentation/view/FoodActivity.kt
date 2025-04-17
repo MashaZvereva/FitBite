@@ -48,7 +48,8 @@ class FoodActivity : AppCompatActivity() {
                 val fragment = RecipeDetailFragment.newInstance(recipe)
                 fragment.show(supportFragmentManager, "RecipeDetail")
             },
-            isFoodActivity = true // Указываем, что это
+            onAddClick = { _, _ -> }, // <-- заглушка
+            isFoodActivity = true
         )
         recyclerView.adapter = recipeAdapter
 

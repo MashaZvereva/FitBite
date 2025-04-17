@@ -34,6 +34,16 @@
                     android:textSize="16sp" />
         </LinearLayout>
 
+        <EditText
+            android:id="@+id/portion_input"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:hint="кол-во"
+            android:inputType="number"
+            android:maxLines="1"
+            android:layout_marginStart="8dp"
+            android:textSize="14sp" />
+
         <!-- Кнопка добавления -->
         <Button
             android:id="@+id/add_button"
@@ -42,4 +52,5 @@
             android:layout_marginStart="8dp"
             android:text="+"
             android:textSize="20sp" />
+
 </LinearLayout>

@@ -39,7 +39,16 @@ class ProductListFragment : Fragment() {
         val searchEditText = view.findViewById<EditText>(R.id.searchEditText)
 
         // Инициализируем адаптер
-        productAdapter = ProductAdapter(emptyList())
+        productAdapter = ProductAdapter(
+            emptyList(),
+            onAddClick = { product, portion ->
+                // Реализуем обработчик добавления продукта
+                // Вы можете передать "product" и "portion" для дальнейшей обработки
+                // Например, сохранить продукт и порцию в базе данных или в списке
+                Log.d("ProductListFragment", "Добавлен продукт: ${product.name}, порция: $portion")
+            }
+        )
+
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = productAdapter
 
