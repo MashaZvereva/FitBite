@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/totalCaloriesText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Потрачено: 0 ккал"
+        android:textSize="16sp"
+        android:padding="16dp"
+        android:textStyle="bold"/>
+
+
+    <!-- RecyclerView для отображения списка активностей  -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/dailyActivityRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

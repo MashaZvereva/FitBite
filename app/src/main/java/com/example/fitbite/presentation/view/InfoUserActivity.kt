@@ -1,5 +1,7 @@
 package com.example.fitbite.presentation.view
 
+import android.app.Activity
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
@@ -7,11 +9,13 @@ import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.fitbite.R
 import com.example.fitbite.data.model.UserParameters
 import com.example.fitbite.data.network.RetrofitInstance
 import com.example.fitbite.presentation.viewmodel.AuthViewModel
+import com.example.fitbite.presentation.viewmodel.DailySummaryViewModel
 import com.example.fitbite.presentation.viewmodel.InfoUserViewModel
 import kotlinx.coroutines.launch
 import com.github.mikephil.charting.data.Entry
@@ -27,9 +31,13 @@ import kotlin.math.abs
 
 class InfoUserActivity : AppCompatActivity() {
 
+    private lateinit var mainViewModel: MainViewModel
     private val apiService = RetrofitInstance.api
     private lateinit var sharedPreferences: SharedPreferences
     val authViewModel: AuthViewModel by viewModels()
+    //private var reportId: Int = -1
+    //private lateinit var dailySummaryViewModel: DailySummaryViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +52,9 @@ class InfoUserActivity : AppCompatActivity() {
                 getUserData(it)
             }
         }
+
+        // Получаем ViewModel
+        mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         // Инициализация полей
         val weightEditText: EditText = findViewById(R.id.weightEditText)
@@ -139,6 +150,14 @@ class InfoUserActivity : AppCompatActivity() {
                 ).show()
                 return@setOnClickListener
             }
+            val bmiTarget = target_weight / ((height / 100.0) * (height / 100.0))
+            val category = getBmiCategory(age, bmiTarget)
+            if (category == "Недостаточен, опасно для здоровья" ||
+                category.startsWith("Ожирение")) {
+                Toast.makeText(this, "Желаемый вес не может быть установлен в зону: $category", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
 
             val infoUserViewModel = InfoUserViewModel()
 
@@ -165,8 +184,9 @@ class InfoUserActivity : AppCompatActivity() {
             )
 
             // Отображаем результат
-            caloriesResultTextView.text =
-                "Ваша норма калорий: $targetCalories ккал"
+            //caloriesResultTextView.text =
+            //    "Ваша норма калорий: $targetCalories ккал"
+
 
             // Расчет времени похудения
             val timeToReach = calculateTimeToReachTargetWeight(
@@ -187,7 +207,7 @@ class InfoUserActivity : AppCompatActivity() {
 
             // Добавим это к TextView с калориями:
             caloriesResultTextView.text =
-                "Ваша норма калорий: $targetCalories ккал\n$timeDescription"
+                "Ваша норма калорий: $targetCalories ккал\n\n$timeDescription"
 
 
             // Рассчитываем индекс массы тела
@@ -332,10 +352,13 @@ class InfoUserActivity : AppCompatActivity() {
                     chart.invalidate() // Обновление графика
                 }
             }
+
+            // В обработчике кнопки после mainViewModel.updateCalories(targetCalories)
+            val resultIntent = Intent()
+            resultIntent.putExtra("targetCalories", targetCalories)
+            setResult(Activity.RESULT_OK, resultIntent)
         }
     }
-
-
             private fun displayUserData(userData: UserParameters) {
         findViewById<EditText>(R.id.weightEditText).setText(userData.weight?.toString() ?: "")
         findViewById<EditText>(R.id.targetweightEditText).setText(userData.target_weight?.toString() ?: "")
@@ -348,6 +371,86 @@ class InfoUserActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.calculateButton).performClick()
     }
+
+    fun getBmiCategory(age: Int, bmi: Double): String {
+        return when (age) {
+            in 14..17 -> { // Условно, для подростков - лучше использовать центильные таблицы
+                when {
+                    bmi < 17.0 -> "Недостаточен, опасно для здоровья"
+                    bmi < 19.0 -> "Слегка снижен, неопасно для здоровья"
+                    bmi < 24.0 -> "Нормальный"
+                    bmi < 27.0 -> "Излишний"
+                    bmi < 30.0 -> "Ожирение 1 степени"
+                    bmi < 35.0 -> "Ожирение 2 степени"
+                    bmi < 40.0 -> "Ожирение 3 степени"
+                    else -> "Ожирение 4 степени"
+                }
+            }
+            in 18..25 -> {
+                when {
+                    bmi < 17.5 -> "Недостаточен, опасно для здоровья"
+                    bmi < 19.5 -> "Слегка снижен, неопасно для здоровья"
+                    bmi < 23.0 -> "Нормальный"
+                    bmi < 27.5 -> "Излишний"
+                    bmi < 30.0 -> "Ожирение 1 степени"
+                    bmi < 35.0 -> "Ожирение 2 степени"
+                    bmi < 40.0 -> "Ожирение 3 степени"
+                    else -> "Ожирение 4 степени"
+                }
+            }
+            in 26..45 -> {
+                when {
+                    bmi < 18.0 -> "Недостаточен, опасно для здоровья"
+                    bmi < 20.0 -> "Слегка снижен, неопасно для здоровья"
+                    bmi < 26.0 -> "Нормальный"
+                    bmi < 28.0 -> "Излишний"
+                    bmi < 31.0 -> "Ожирение 1 степени"
+                    bmi < 36.0 -> "Ожирение 2 степени"
+                    bmi < 41.0 -> "Ожирение 3 степени"
+                    else -> "Ожирение 4 степени"
+                }
+            }
+            in 46..59 -> {
+                when {
+                    bmi < 19.0 -> "Недостаточен, опасно для здоровья"
+                    bmi < 21.0 -> "Слегка снижен, неопасно для здоровья"
+                    bmi < 27.0 -> "Нормальный"
+                    bmi < 29.0 -> "Излишний"
+                    bmi < 32.0 -> "Ожирение 1 степени"
+                    bmi < 37.0 -> "Ожирение 2 степени"
+                    bmi < 42.0 -> "Ожирение 3 степени"
+                    else -> "Ожирение 4 степени"
+                }
+            }
+            in 60..74 -> {
+                when {
+                    bmi < 20.0 -> "Недостаточен, опасно для здоровья"
+                    bmi < 22.0 -> "Слегка снижен, неопасно для здоровья"
+                    bmi < 28.0 -> "Нормальный"
+                    bmi < 30.0 -> "Излишний"
+                    bmi < 33.0 -> "Ожирение 1 степени"
+                    bmi < 38.0 -> "Ожирение 2 степени"
+                    bmi < 43.0 -> "Ожирение 3 степени"
+                    else -> "Ожирение 4 степени"
+                }
+            }
+            else -> { // 75+
+                when {
+                    bmi < 20.0 -> "Недостаточен, опасно для здоровья"
+                    bmi < 23.0 -> "Слегка снижен, неопасно для здоровья"
+                    bmi < 29.0 -> "Нормальный"
+                    bmi < 31.0 -> "Излишний"
+                    bmi < 34.0 -> "Ожирение 1 степени"
+                    bmi < 39.0 -> "Ожирение 2 степени"
+                    bmi < 44.0 -> "Ожирение 3 степени"
+                    else -> "Ожирение 4 степени"
+                }
+            }
+        }
+    }
+
+
+
 
     private fun getGenderIndex(gender: String): Int {
         val genders = resources.getStringArray(R.array.genders)

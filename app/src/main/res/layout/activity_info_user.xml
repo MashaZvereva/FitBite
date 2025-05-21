@@ -122,19 +122,20 @@
         app:layout_constraintTop_toBottomOf="@+id/targetweightEditText" />
 
     <!-- Результат калорий-->
-    <TextView
-        android:id="@+id/caloriesResultTextView"
-        android:layout_width="279dp"
-        android:layout_height="62dp"
-        android:layout_marginTop="28dp"
-        android:text="Суточная норма калорий: "
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calculateButton" />
+        <TextView
+            android:id="@+id/caloriesResultTextView"
+            android:layout_width="287dp"
+            android:layout_height="83dp"
+            android:layout_marginTop="28dp"
+            android:text="Суточная норма калорий: "
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calculateButton"
+            android:tooltipText="Это всплывающая подсказка!" />
 
-    <!-- Результат воды -->
-    <TextView
+        <!-- Результат воды -->
+        <TextView
         android:id="@+id/waterIntakeTextView"
         android:layout_width="283dp"
         android:layout_height="21dp"
@@ -144,7 +145,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.467"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/caloriesResultTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/caloriesResultTextView"
+            android:tooltipText="Это всплывающая подсказка!" />
 
     <!-- Результат ИМТ -->
         <TextView

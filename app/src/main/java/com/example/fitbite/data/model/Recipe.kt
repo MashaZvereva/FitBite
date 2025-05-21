@@ -12,6 +12,9 @@ data class Recipe(
     val instruction: String?,
     val cooking_time: Int?,
     val calories: Double?,
+    val proteins: Double?,
+    val fats: Double?,
+    val carbohydrates: Double?,
     val image: String?, // Переименовали для хранения относительного пути
     val products: List<RecipeProduct>?
 ) : Parcelable {

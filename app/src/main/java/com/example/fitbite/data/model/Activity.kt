@@ -8,3 +8,15 @@ data class Activity(
     @SerializedName("calories_burned") val caloriesBurned: Double  // Исправлено имя поля
 )
 
+data class DailyActivityRequest(
+    @SerializedName("activity_id") val activityId: Int,
+    @SerializedName("duration_minutes") val durationMinutes: Int,
+    @SerializedName("calories_burned") val caloriesBurned: Double
+)
+
+data class DailyActivity(
+    @SerializedName("id") val id: Int,
+    @SerializedName("activity_name") val activityName: String,
+    @SerializedName("duration_minutes") val durationMinutes: Int,
+    @SerializedName("calories_burned") val caloriesBurned: Double
+)

@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:hint="Поиск рецептов"
         android:inputType="text"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="0dp"
         android:layout_marginBottom="16dp" />
 
     <!-- RecyclerView для отображения списка рецептов -->

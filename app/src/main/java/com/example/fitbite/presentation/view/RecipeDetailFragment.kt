@@ -40,6 +40,9 @@ class RecipeDetailFragment : DialogFragment() {
     private lateinit var ingredientsContainer: ViewGroup
     private lateinit var caloriesTextView: TextView
     private lateinit var portionCountText: TextView
+    private lateinit var proteinsTextView: TextView
+    private lateinit var fatsTextView: TextView
+    private lateinit var carbsTextView: TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,9 +82,14 @@ class RecipeDetailFragment : DialogFragment() {
         val addToFavoritesButton = view.findViewById<Button>(R.id.addToFavoritesButton)
         val recipeRepository = RecipeRepository()
 
+
         caloriesTextView = view.findViewById(R.id.recipeCalories)
         ingredientsContainer = view.findViewById(R.id.ingredientsContainer)
         portionCountText = view.findViewById(R.id.portionCountText)
+        caloriesTextView = view.findViewById(R.id.recipeCalories)
+        proteinsTextView = view.findViewById(R.id.recipeProteins)
+        fatsTextView     = view.findViewById(R.id.recipeFats)
+        carbsTextView    = view.findViewById(R.id.recipeCarbs)
 
         recipe?.let {
             title.text = it.name
@@ -141,9 +149,21 @@ class RecipeDetailFragment : DialogFragment() {
         recipe?.let { r ->
             portionCountText.text = "$portionCount порц${getPortionEnding(portionCount)}"
 
-            // Обновляем калории
-            val totalCalories = (r.calories ?: 0.0) * portionCount
-            caloriesTextView.text = "Калорийность: %.1f ккал".format(totalCalories)
+            // Калории
+            val totalCal = (r.calories ?: 0.0) * portionCount
+            caloriesTextView.text = "Калорийность: %.1f ккал".format(totalCal)
+
+            // Белки
+            val totalProt = (r.proteins ?: 0.0) * portionCount
+            proteinsTextView.text = "Белки: %.1f г".format(totalProt)
+
+            // Жиры
+            val totalFat = (r.fats ?: 0.0) * portionCount
+            fatsTextView.text = "Жиры: %.1f г".format(totalFat)
+
+            // Углеводы
+            val totalCarb = (r.carbohydrates ?: 0.0) * portionCount
+            carbsTextView.text = "Углеводы: %.1f г".format(totalCarb)
 
             // Обновляем ингредиенты
             ingredientsContainer.removeAllViews()

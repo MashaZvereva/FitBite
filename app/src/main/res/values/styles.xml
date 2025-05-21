@@ -1,34 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Тема приложения -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Основной цвет для кнопок -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Светлая тема для приложения -->
+    <style name="Theme.FitBite.Light" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/button_background</item>
-        <item name="colorPrimaryDark">@color/button_background</item>
-        <item name="colorAccent">@color/button_background</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:background">@color/white</item>
 
-        <!-- Применяем стиль для кнопок -->
-        <item name="buttonStyle">@style/CustomButtonStyle</item>
+        <!-- Цвета для кнопок -->
+        <item name="buttonStyle">@style/Widget.Material3.Button</item>
     </style>
 
-    <!-- Стиль кнопки -->
-    <style name="CustomButtonStyle">
-        <item name="android:background">@color/button_background</item>
+    <!-- Тёмная тема для приложения -->
+    <style name="Theme.FitBite.Dark" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/button_background2</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:background">@color/black</item>
+    </style>
+
+    <!-- Стиль для кнопок с рамкой -->
+    <style name="ButtonWithBorderStyle">
+        <item name="android:background">@drawable/button_border</item> <!-- Укажите сюда ваш ресурс для границы -->
         <item name="android:textColor">@color/button_text_color</item>
-        <item name="android:textSize">18sp</item>
-        <item name="android:padding">10dp</item>
-        <item name="android:layout_margin">8dp</item>
     </style>
 
+    <!-- Стиль для текста вкладки -->
+    <style name="CustomTabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Стиль для кнопок в кнопочной панели (fullscreen button bar) -->
     <style name="Widget.Theme.FitBite.ButtonBar.Fullscreen" parent="">
         <item name="android:background">@color/black_overlay</item>
         <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
     </style>
 
-    <style name="CustomTabTextAppearance" parent="TextAppearance.Design.Tab">
-        <item name="android:textSize">16sp</item> <!-- или больше -->
-        <item name="android:textStyle">bold</item>
+    <!-- Стиль для кнопок в полноэкранном контейнере -->
+    <style name="ThemeOverlay.FitBite.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
+        <item name="fullscreenTextColor">@color/light_blue_A200</item>
     </style>
 
 </resources>
-

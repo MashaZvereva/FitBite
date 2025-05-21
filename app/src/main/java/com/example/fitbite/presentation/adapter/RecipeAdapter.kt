@@ -17,8 +17,9 @@ import com.example.fitbite.data.model.Recipe
 class RecipeAdapter(
     private var recipes: List<Recipe>,
     private val onRecipeClick: (Recipe) -> Unit,
-    private val onAddClick: ((Recipe, Int) -> Unit)? = null,
-    private val isRecipeListFragment: Boolean = false, // Флаг, указывающий, находимся ли мы в FavoriteRecipeFragment
+    private val onAddRecipeToMeal: (Recipe, Int) -> Unit,
+    private val onRefreshSummary: () -> Unit,  // добавлено
+    private val isRecipeListFragment: Boolean = false,
     private val isFoodActivity: Boolean = false
 ) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
 
@@ -29,10 +30,10 @@ class RecipeAdapter(
         private val imageUrl: ImageView = view.findViewById(R.id.recipe_image)
         val addButton: Button = view.findViewById(R.id.add_button)
         val removeFavoriteButton: Button = view.findViewById(R.id.removeFavoriteButton)
-        val portionInput: EditText = view.findViewById(R.id.portion_input)
+        val portionInput: EditText = view.findViewById(R.id.portion_input_recipe)
 
         fun bind(recipe: Recipe) {
-            name.text = recipe.name // Название рецепта
+            name.text = recipe.name
             description.text = recipe.description ?: "Описание отсутствует"
             calories.text = "Калории: ${recipe.calories ?: 0.0} ккал"
 
@@ -43,26 +44,22 @@ class RecipeAdapter(
                 .fallback(R.drawable.placeholder)
                 .into(imageUrl)
 
-            // Устанавливаем видимость кнопок в зависимости от фрагмента
             if (isRecipeListFragment) {
                 addButton.visibility = View.VISIBLE
-                removeFavoriteButton.visibility = View.GONE
                 portionInput.visibility = View.VISIBLE
+                removeFavoriteButton.visibility = View.GONE
             } else if (isFoodActivity) {
                 addButton.visibility = View.GONE
-                removeFavoriteButton.visibility = View.GONE
                 portionInput.visibility = View.GONE
+                removeFavoriteButton.visibility = View.GONE
             } else {
-                // По умолчанию
                 addButton.visibility = View.GONE
-                removeFavoriteButton.visibility = View.GONE
                 portionInput.visibility = View.GONE
+                removeFavoriteButton.visibility = View.GONE
             }
 
-            // Кнопка по умолчанию отключена
             addButton.isEnabled = false
 
-            // Следим за вводом и включаем кнопку, если ввод корректный
             portionInput.addTextChangedListener {
                 val portion = it.toString().toIntOrNull()
                 addButton.isEnabled = portion != null && portion in 1..1000
@@ -71,17 +68,16 @@ class RecipeAdapter(
                 else null
             }
 
-            // Обработка клика по кнопке добавления
             addButton.setOnClickListener {
                 val portion = portionInput.text.toString().toIntOrNull()
                 if (portion != null && portion in 1..1000) {
-                    onAddClick?.invoke(recipe, portion)  // Используем recipe
+                    onAddRecipeToMeal(recipe, portion)
+                    onRefreshSummary()  // теперь вызываем переданную функцию
                 } else {
                     portionInput.error = "Введите от 1 до 1000"
                 }
             }
 
-            // Обработка клика по элементу
             itemView.setOnClickListener {
                 onRecipeClick(recipe)
             }
@@ -104,3 +100,4 @@ class RecipeAdapter(
         notifyDataSetChanged()
     }
 }
+

@@ -12,7 +12,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.fitbite.R
-import com.example.fitbite.data.storage.SessionManager
+import com.example.fitbite.data.storage.SessionManager // Добавь этот импорт
 import com.example.fitbite.presentation.viewmodel.AuthViewModel
 
 class AuthActivity : AppCompatActivity() {

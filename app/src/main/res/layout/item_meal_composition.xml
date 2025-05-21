@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Название слева -->
+
+        <!-- Приём пищи справа от названия -->
+
+        <!-- Кнопка удалить под приемом пищи -->
+
+        <TextView
+            android:id="@+id/itemName"
+            android:layout_width="241dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="8dp"
+            android:text="Название"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/portionSize"
+            app:layout_constraintEnd_toStartOf="@id/mealType"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/mealType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="Приём пищи"
+            android:textColor="#757575"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/itemName" />
+
+        <Button
+            android:id="@+id/removeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Удалить"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/mealType"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Порция -->
+        <TextView
+            android:id="@+id/portionSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="1 порция"
+            android:textSize="15sp"
+            android:textColor="#757575"
+            app:layout_constraintTop_toBottomOf="@id/itemName"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <!-- Калории -->
+        <TextView
+            android:id="@+id/calories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="0 ккал"
+            android:textSize="15sp"
+            android:textColor="#757575"
+            app:layout_constraintTop_toBottomOf="@id/portionSize"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <!-- БЖУ -->
+        <LinearLayout
+            android:id="@+id/nutrientsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            app:layout_constraintTop_toBottomOf="@id/calories"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/proteins"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Б: 0 г"
+                android:textSize="15sp"
+                android:textColor="#757575" />
+
+            <TextView
+                android:id="@+id/fats"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Ж: 0 г"
+                android:textSize="15sp"
+                android:textColor="#757575" />
+
+            <TextView
+                android:id="@+id/carbs"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="У: 0 г"
+                android:textSize="15sp"
+                android:textColor="#757575" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

@@ -16,6 +16,7 @@ firebaseDatabaseKtx = "21.0.0"
 lifecycleViewmodelKtx = "2.8.7"
 kotlin = "2.1.0"
 recyclerview = "1.4.0"
+playServicesAnalyticsImpl = "18.2.0"
 
 [libraries]
 android-activation = { module = "com.sun.mail:android-activation", version.ref = "androidActivation" }
@@ -37,6 +38,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+play-services-analytics-impl = { group = "com.google.android.gms", name = "play-services-analytics-impl", version.ref = "playServicesAnalyticsImpl" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

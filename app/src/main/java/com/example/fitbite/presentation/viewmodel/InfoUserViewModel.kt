@@ -1,50 +1,11 @@
 package com.example.fitbite.presentation.viewmodel
 
 import com.example.fitbite.data.model.UserParameters
+import kotlin.math.roundToInt
 
 class InfoUserViewModel {
 
-    // Рассчитываем норму калорий
-    fun calculateCalories(
-        weight: Float,
-        height: Int?,
-        age: Int,
-        gender: String,
-        activity: String,
-        result: String
-    ): Int {
-        val safeHeight = height ?: return 0
-        // Пример расчета для женского пола
-        val bmr = if (gender == "Женский") {
-            10 * weight + 6.25 * height - 5 * age - 161
-        } else {
-            10 * weight + 6.25 * height - 5 * age + 5
-        }
-
-        // Уровень активности
-        val activityFactor = when (activity) {
-            "Отсутствие физической активности" -> 1.2
-            "Легкая активность" -> 1.375
-            "Средняя активность" -> 1.55
-            "Высокая активность" -> 1.725
-            "Очень высокая активность" -> 1.9
-            else -> 1.2
-        }
-
-        // Суточная норма калорий для поддержания веса
-        val tdee = bmr * activityFactor
-
-        // Желаемый результат
-        return when (result) {
-            "Быстрое похудение" -> (tdee - 500).toInt()
-            "Умеренное похудение" -> (tdee - 300).toInt()
-            "Поддержание веса" -> tdee.toInt()
-            "Набор массы" -> (tdee + 300).toInt()
-            else -> tdee.toInt()
-        }
-    }
-
-    // Новая функция: возвращает норму калорий И изменение веса за месяц
+    // возвращает пару: (рекомендуемые калории, потеря/набор веса за месяц в кг)
     fun calculateCaloriesAndWeightChange(
         weight: Float,
         height: Int?,
@@ -53,39 +14,46 @@ class InfoUserViewModel {
         activity: String,
         result: String
     ): Pair<Int, Float> {
-        val safeHeight = height ?: return Pair(0, 0f)
+        val h = height ?: return 0 to 0f
 
+        // 1) BMR (везде Float-литералы)
         val bmr = if (gender == "Женский") {
-            10 * weight + 6.25 * safeHeight - 5 * age - 161
+            10f * weight + 6.25f * h - 5f * age - 161f
         } else {
-            10 * weight + 6.25 * safeHeight - 5 * age + 5
+            10f * weight + 6.25f * h - 5f * age + 5f
         }
 
+        // 2) Фактор активности
         val activityFactor = when (activity) {
-            "Отсутствие физической активности" -> 1.2
-            "Легкая активность" -> 1.375
-            "Средняя активность" -> 1.55
-            "Высокая активность" -> 1.725
-            "Очень высокая активность" -> 1.9
-            else -> 1.2
+            "Отсутствие физической активности" -> 1.2f
+            "Легкая активность"               -> 1.375f
+            "Средняя активность"              -> 1.55f
+            "Высокая активность"              -> 1.725f
+            "Очень высокая активность"        -> 1.9f
+            else                              -> 1.2f
         }
 
-        val tdee = bmr * activityFactor
+        // 3) Суточная норма (rawTdee — Float, tdee — Int)
+        val rawTdee = bmr * activityFactor
+        val tdee = rawTdee.roundToInt()
 
-        val recommendedCalories = when (result) {
-            "Быстрое похудение" -> tdee - 500
+        // 4) Подкорректированная цель по калориям
+        val recommended = when (result) {
+            "Быстрое похудение"   -> tdee - 500
             "Умеренное похудение" -> tdee - 300
-            "Поддержание веса" -> tdee
-            "Набор массы" -> tdee + 300
-            else -> tdee
+            "Поддержание веса"    -> tdee
+            "Набор массы"         -> tdee + 300
+            else                  -> tdee
         }
 
-        val calorieDifference = recommendedCalories - tdee
-        val weightChangePerDay = calorieDifference / 7700f
-        val weightChangePerMonth = (weightChangePerDay * 30)
+        // 5) Изменение веса: разница калорий / 7700 ккал в кг
+        val calorieDiff = recommended - rawTdee         // Float - Float = Float
+        val weightChangePerDay = calorieDiff / 7700f    // Float
+        val weightChangePerMonth = weightChangePerDay * 30f
 
-        return Pair(recommendedCalories.toInt(), weightChangePerMonth.toFloat())
+        return recommended to weightChangePerMonth
     }
+
 
 
     // Функция для расчета ИМТ

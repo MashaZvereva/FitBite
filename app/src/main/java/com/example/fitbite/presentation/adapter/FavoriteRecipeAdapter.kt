@@ -24,7 +24,7 @@ class FavoriteRecipeAdapter(
 
         val addButton = binding.addButton
         val removeFavoriteButton = binding.removeFavoriteButton
-        val portionInput = binding.portionInput // Добавим переменную для EditText
+        val portionInput = binding.portionInputRecipe // Добавим переменную для EditText
 
         fun bind(favoriteRecipe: FavoriteRecipe) {
             binding.recipeName.text = favoriteRecipe.recipe.name

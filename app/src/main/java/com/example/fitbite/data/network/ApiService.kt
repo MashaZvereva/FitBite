@@ -24,9 +24,6 @@ interface ApiService {
     @GET("api/products/")
     suspend fun getProduct(): List<Product>
 
-    @GET("api/activity/")
-    suspend fun getActivities(): List<Activity>
-
     @GET("recipes/{id}/")
     fun getRecipeById(@Path("id") recipeId: Int): Call<Recipe>
 
@@ -54,16 +51,71 @@ interface ApiService {
                 (@Header("Authorization") token: String,
                  @Path("id") recipeId: Int): Response<Unit>
 
-    @GET("daily_report/")
+
+    @GET("api/daily_report/")
     suspend fun getDailyReports(): List<DailyReport>
 
-    @GET("meal/{report_id}/")
-    suspend fun getMeals(@Path("report_id") reportId: Int): List<Meal>
+    @POST("api/daily_report/")
+    fun createDailyReport(
+        @Header("Authorization") token: String,
+        @Body report: DailyReport
+    ): Call<DailyReportResponse>
 
-    @GET("meal_composition/{meal_id}/")
-    suspend fun getMealCompositions(@Path("meal_id") mealId: Int): List<MealComposition>
 
-    @GET("daily_activity/{report_id}/")
-    suspend fun getDailyActivities(@Path("report_id") reportId: Int): List<DailyActivity>
+    @POST("api/meal_compositions/{reportId}/")
+    suspend fun addMealComposition(
+        @Header("Authorization") token: String,
+        @Path("reportId") reportId: Int,
+        @Body mealComposition: MealCompositionRequest
+    ): Response<MealCompositionResponse>
+
+
+    @DELETE("api/meal_composition/{id}/")
+    suspend fun removeMealComposition(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int): Response<Unit>
+
+
+    @GET("api/meal_compositions/{reportId}/")
+    suspend fun getMealComposition(
+        @Header("Authorization") token: String,
+        @Path("reportId") reportId: Int
+    ): Response<List<MealCompositionResponse>>
+
+
+    @GET("api/activity/")
+    suspend fun getActivities(): List<Activity>
+
+    @GET("api/daily_activities/{report_id}/")
+    suspend fun getDailyActivities(
+        @Header("Authorization") token: String,
+        @Path("report_id") reportId: Int
+    ): List<DailyActivity>
+
+    @POST("api/daily_activities/{report_id}/")
+    suspend fun addDailyActivity(
+        @Header("Authorization") auth: String,
+        @Path("report_id") reportId: Int,
+        @Body request: DailyActivityRequest
+    ): DailyActivity
+
+    @DELETE("api/daily_activity/{id}/")
+    suspend fun deleteDailyActivity(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Response<Unit>
+
+    @GET("api/daily_report/{report_id}/water/")
+    suspend fun getDailyWater(
+        @Header("Authorization") token: String,
+        @Path("report_id") reportId: Int
+    ): Response<Map<String, Any>>
+
+    @GET("api/daily_report/{report_id}/summary/")
+    suspend fun getDailySummary(
+        @Header("Authorization") token: String,
+        @Path("report_id") reportId: Int
+    ): Response<DailySummaryResponse>
+
 }
 

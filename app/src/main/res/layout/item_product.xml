@@ -35,7 +35,7 @@
         </LinearLayout>
 
         <EditText
-            android:id="@+id/portion_input"
+            android:id="@+id/portion_input_product"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:hint="кол-во"

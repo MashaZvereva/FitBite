@@ -1,8 +1,9 @@
 package com.example.fitbite.presentation.view
 
-import android.content.Context
+import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.os.Handler
@@ -15,21 +16,59 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.fitbite.R
 import com.example.fitbite.presentation.viewmodel.AuthViewModel
-import com.google.firebase.auth.FirebaseAuth
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.util.Log
-import com.example.fitbite.presentation.view.MealFragment
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.FrameLayout
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.example.fitbite.data.model.DailyReport
+import com.example.fitbite.data.model.DailyReportResponse
+import com.example.fitbite.data.network.RetrofitInstance.api
+import com.example.fitbite.data.storage.SessionManager
+import com.example.fitbite.domain.usecase.sensor.MockStepProvider
+import com.example.fitbite.domain.usecase.sensor.RealStepProvider
+import com.example.fitbite.domain.usecase.sensor.StepProvider
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import com.example.fitbite.BuildConfig
+import com.example.fitbite.data.network.RetrofitInstance
+import com.example.fitbite.domain.usecase.sensor.calc.WaterViewModel
+import com.example.fitbite.presentation.viewmodel.DailySummaryViewModel
+import kotlinx.coroutines.launch
 
 
-class MainActivity : AppCompatActivity(), SensorEventListener {
+// ViewModel
+class MainViewModel : ViewModel() {
+    private val _calories = MutableLiveData<Int>()
+    val calories: LiveData<Int> get() = _calories
+
+    fun updateCalories(newCalories: Int) {
+        _calories.value = newCalories
+    }
+}
+
+class MainActivity : AppCompatActivity() {
+    private lateinit var mainViewModel: MainViewModel
 
     // Хранилище для состояния темы
     private lateinit var sharedPreferences: SharedPreferences
-    private val currentUserId = getCurrentUserId()
     private val authViewModel: AuthViewModel by viewModels()
+
+    // Шагометр
+    private lateinit var stepProvider: StepProvider
+    private lateinit var stepsTextView: TextView
 
     // Часы
     private lateinit var clockView: ClockView
@@ -38,237 +77,243 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     // Календарь
     private lateinit var calendarLayout: LinearLayout
 
-    // Шагометр
-    private lateinit var sensorManager: SensorManager
-    private var stepSensor: Sensor? = null
-    private var stepsAtStart = -1
-    private lateinit var stepsTextView: TextView
-
     // Трекер воды
     private lateinit var waterTextView: TextView
-    private var waterIntake: Int = 0
+    private lateinit var waterViewModel: WaterViewModel
 
+    // Остаток калорий
+    private lateinit var caloriesTextView: TextView
+    private lateinit var dailySummaryViewModel: DailySummaryViewModel
+
+    // Контейнер для фрагментов «Активность»
+    private lateinit var fragmentContainer: FrameLayout
+
+    // Локальный отчёт
+    private var reportId: Int = -1
+
+    // Сессия
+    private val sessionManager by lazy { SessionManager(this) }
+
+    // Кнопки навигации
+    private val INFO_REQUEST = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
         sharedPreferences = getSharedPreferences("user_preferences", MODE_PRIVATE)
 
         // Проверка токена
         authViewModel.getToken { token ->
             if (token.isNullOrEmpty()) {
-                // Токен не найден — переходим в AuthActivity
-                val intent = Intent(this, AuthActivity::class.java)
-                startActivity(intent)
-                finish() // Закрываем MainActivity
-            } else {
-                // Токен есть — продолжаем загрузку интерфейса
-                setContentView(R.layout.activity_main)
+                startActivity(Intent(this, AuthActivity::class.java))
+                finish()
             }
         }
 
-        // Загружаем тему и применяем
-        val isDarkMode = loadTheme(currentUserId)
-        applyTheme(isDarkMode)
+        // Пользователь
+        val userId = sessionManager.getUserIdFromToken()
+        Log.d("USER_ID", "ID пользователя: $userId")
 
-        // Устанавливаем обработчик на кнопки
-        findViewById<Button>(R.id.btnInfoUser).setOnClickListener {
-            startActivity(Intent(this, InfoUserActivity::class.java))
+        mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+
+        // Инициализация «часы + сообщение»
+        clockView       = findViewById(R.id.clockView)
+        messageTextView = findViewById(R.id.messageTextView)
+        startClockUpdater()
+
+        // Календарь
+        calendarLayout = findViewById(R.id.calendarLayout)
+        initWeekCalendar()
+
+        // Фрагменты и кнопки
+        fragmentContainer = findViewById(R.id.fragment_container)
+
+        // Вода
+        waterTextView = findViewById(R.id.waterTextView)
+        waterViewModel = ViewModelProvider(this,
+            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+        )[WaterViewModel::class.java]
+        waterViewModel.waterLiveData.observe(this) { water ->
+            waterTextView.text = "Вода: ${water} мл"
         }
+
+        // Шаги
+        stepsTextView = findViewById(R.id.stepsTextView)
+       // stepProvider = if (BuildConfig.USE_MOCK_STEP_PROVIDER) MockStepProvider() else RealStepProvider(this)
+        stepProvider = if (BuildConfig.USE_MOCK_STEP_PROVIDER) RealStepProvider(this) else RealStepProvider(this)
+
+        // Остаток калорий
+        caloriesTextView = findViewById(R.id.caloriesTextView)
+        dailySummaryViewModel = ViewModelProvider(this)[DailySummaryViewModel::class.java]
+        dailySummaryViewModel.summaryLiveData.observe(this) { summary ->
+            caloriesTextView.text = "Осталось: ${summary.caloriesLeft} ккал"
+        }
+
+
+        findViewById<Button>(R.id.btnInfoUser).setOnClickListener {
+            val intent = Intent(this, InfoUserActivity::class.java)
+            intent.putExtra("report_id", reportId)
+            startActivityForResult(intent, INFO_REQUEST)
+        }
+
         findViewById<Button>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         findViewById<Button>(R.id.btnFood).setOnClickListener {
             startActivity(Intent(this, FoodActivity::class.java))
         }
-       // findViewById<Button>(R.id.btnActivity).setOnClickListener {
-       //     // Создаем новый экземпляр ActivityDialogFragment
-       //     val fragment = ActivityDialogFragment()
-//
-       //     // Отображаем фрагмент как диалог
-       //     fragment.show(supportFragmentManager, fragment.tag)
-       // }
-       // findViewById<Button>(R.id.btnProduct).setOnClickListener {
-       //     val fragment = ProductDialogFragment()
-       //     fragment.show(supportFragmentManager, fragment.tag)
-       // }
 
-        // Часы
-        clockView = findViewById(R.id.clockView)
-        messageTextView = findViewById(R.id.messageTextView)
+        val btnBreakfast = findViewById<Button>(R.id.btnBreakfast)
+        val btnLunch     = findViewById<Button>(R.id.btnLunch)
+        val btnDinner    = findViewById<Button>(R.id.btnDinner)
+        val btnSnack     = findViewById<Button>(R.id.btnSnack)
+        val btnActivity  = findViewById<Button>(R.id.btnActivity)
 
-        // Обновление времени каждую минуту
-        val handler = Handler(Looper.getMainLooper())
-        val runnable = object : Runnable {
-            override fun run() {
-                clockView.invalidate() // Обновляем часы
-                updateMessage() // Обновляем сообщение
-                handler.postDelayed(this, 60000) // Вызываем снова через минуту
+        listOf(btnBreakfast, btnLunch, btnDinner, btnSnack).forEach { it.isEnabled = false }
+        btnActivity.isEnabled = false
+        val container = findViewById<FrameLayout>(R.id.fragment_container)
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                container.visibility = View.GONE
             }
         }
-        handler.post(runnable)
 
-        // Инициализация компонента календаря
-        calendarLayout = findViewById(R.id.calendarLayout)
+        // Создаём/загружаем отчёт
+        val authToken = sessionManager.fetchAuthToken()
+        loadDailyReport(authToken) { id ->
+            if (id != null && id != -1) {
+                reportId = id
+                // теперь можно переключаться между приёмами пищи
+                btnBreakfast.isEnabled = true
+                btnLunch.isEnabled     = true
+                btnDinner.isEnabled    = true
+                btnSnack.isEnabled     = true
+                btnActivity.isEnabled  = true
 
-        // Получаем текущую дату и день недели
-        val calendar = Calendar.getInstance()
-        val currentDay = calendar.get(Calendar.DAY_OF_WEEK) // Получаем текущий день недели (1-7)
-        val currentMonth = calendar.get(Calendar.MONTH) // Месяц
-        val currentYear = calendar.get(Calendar.YEAR) // Год
-
-        // Получаем число текущего дня
-        val currentDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-
-        // Начало недели (понедельник)
-        val startOfWeek = calendar.clone() as Calendar
-        startOfWeek.set(
-            Calendar.DAY_OF_WEEK,
-            startOfWeek.firstDayOfWeek
-        ) // Переводим на понедельник
-
-        // Добавляем 7 дней в календарь
-        for (i in 0..6) {
-            val dayTextView = TextView(this)
-            val dayOfMonth = startOfWeek.get(Calendar.DAY_OF_MONTH)
-
-            // Устанавливаем день месяца для отображения
-            dayTextView.text = dayOfMonth.toString()
-
-            // Настройка стиля для кружков
-            dayTextView.setPadding(20, 20, 20, 20)
-            dayTextView.gravity = android.view.Gravity.CENTER
-            dayTextView.setTextColor(resources.getColor(android.R.color.white))
-
-            // Проверяем, является ли это текущим днем
-            if (dayOfMonth == currentDayOfMonth) {
-                dayTextView.setBackgroundColor(resources.getColor(android.R.color.holo_green_light))
+                // подтягиваем воду и калории
+                waterViewModel.refreshWater(reportId)
+                dailySummaryViewModel.refreshSummary(reportId)
             } else {
-                dayTextView.setBackgroundColor(resources.getColor(android.R.color.darker_gray))
+                Toast.makeText(this, "Не удалось загрузить отчёт", Toast.LENGTH_SHORT).show()
             }
-
-            // Добавляем TextView в LinearLayout
-            val layoutParams =
-                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            layoutParams.setMargins(5, 0, 5, 0)
-            dayTextView.layoutParams = layoutParams
-
-            calendarLayout.addView(dayTextView)
-
-            // Перемещаем на следующий день
-            startOfWeek.add(Calendar.DAY_OF_MONTH, 1)
         }
 
-        // Шагометр
-        stepsTextView = findViewById(R.id.stepsTextView)
-        setupStepSensor()
-
-
-        // Кнопки для перехода на фрагменты
-        findViewById<Button>(R.id.btnBreakfast).setOnClickListener {
-            openMealFragment("Завтрак")
-            Log.d("MainActivity", "Кнопка Завтрак нажата")
-            openMealFragment("Завтрак")
-        }
-        findViewById<Button>(R.id.btnLunch).setOnClickListener {
-            openMealFragment("Обед")
-        }
-        findViewById<Button>(R.id.btnDinner).setOnClickListener {
-            openMealFragment("Ужин")
-        }
-        findViewById<Button>(R.id.btnSnack).setOnClickListener {
-            openMealFragment("Перекус")
+        btnBreakfast.setOnClickListener { openMealFragment("breakfast") }
+        btnLunch    .setOnClickListener { openMealFragment("lunch") }
+        btnDinner   .setOnClickListener { openMealFragment("dinner") }
+        btnSnack    .setOnClickListener { openMealFragment("snack") }
+        btnActivity .setOnClickListener {
+            openActivityPage(fragmentContainer, reportId)
         }
     }
 
+    private fun startClockUpdater() {
+        val handler = Handler(Looper.getMainLooper())
+        handler.post(object : Runnable {
+            override fun run() {
+                clockView.invalidate()
+                updateMessage()
+                handler.postDelayed(this, 60_000L)
+            }
+        })
+    }
+
+    private fun initWeekCalendar() {
+        val cal = Calendar.getInstance()
+        val today = cal.get(Calendar.DAY_OF_MONTH)
+        cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+        repeat(7) {
+            val tv = TextView(this).apply {
+                text = cal.get(Calendar.DAY_OF_MONTH).toString()
+                setPadding(20,20,20,20)
+                gravity = Gravity.CENTER
+                setTextColor(Color.BLACK)
+                setBackgroundColor(
+                    if (cal.get(Calendar.DAY_OF_MONTH)==today)
+                        Color.GREEN else ContextCompat.getColor(this@MainActivity, R.color.border_color)
+                )
+                layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply {
+                    setMargins(5,0,5,0)
+                }
+            }
+            calendarLayout.addView(tv)
+            cal.add(Calendar.DAY_OF_MONTH,1)
+        }
+    }
+
+
+    private fun loadDailyReport(token: String?, callback: (Int?) -> Unit) {
+        if (token.isNullOrEmpty()) return callback(null)
+        val authHeader = "Bearer $token"
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val report = DailyReport(date=today, user=sessionManager.getUserIdFromToken().toString())
+        api.createDailyReport(authHeader, report).enqueue(object : Callback<DailyReportResponse> {
+            override fun onResponse(
+                call: Call<DailyReportResponse>,
+                response: Response<DailyReportResponse>
+            ) {
+                callback(response.body()?.id)
+            }
+            override fun onFailure(call: Call<DailyReportResponse>, t: Throwable) {
+                callback(null)
+            }
+        })
+    }
 
     private fun openMealFragment(mealType: String) {
-        val fragment = MealFragment.newInstance(mealType)
-
-        // Начинаем транзакцию
-        val transaction = supportFragmentManager.beginTransaction()
-
-        // Просто добавляем фрагмент в активити (не обязательно использовать контейнер)
-        transaction.replace(android.R.id.content, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
+        if (reportId == -1) return
+        val frag = MealFragment.newInstance(mealType, reportId)
+        supportFragmentManager.beginTransaction()
+            .replace(android.R.id.content, frag)
+            .addToBackStack(null)
+            .commit()
     }
 
-
-    // Функция для применения выбранной темы
-    private fun applyTheme(isDarkMode: Boolean) {
-        val mode =
-            if (isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
-        AppCompatDelegate.setDefaultNightMode(mode)
+    private fun openActivityPage(container: FrameLayout, reportId: Int) {
+        if (reportId == -1) return
+        container.visibility = View.VISIBLE
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, ActivityPageFragment.newInstance(reportId))
+            .addToBackStack(null)
+            .commit()
     }
 
-    // Функция для загрузки темы текущего пользователя из SharedPreferences
-    private fun loadTheme(userId: String): Boolean {
-        return sharedPreferences.getBoolean("theme_$userId", false) // По умолчанию светлая тема
-    }
-
-    // Функция для получения уникального ID текущего пользователя
-    private fun getCurrentUserId(): String {
-        return FirebaseAuth.getInstance().currentUser?.uid ?: "default_user"
-    }
-
-    // Функция для обновления сообщения под часами
     private fun updateMessage() {
-        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-
-        val message = when {
-            currentHour in 6..8 -> "Время завтрака"
-            currentHour in 12..14 -> "Время обеда"
-            currentHour in 16..19 -> "Время ужина"
-            currentHour in 20..21 -> "Пора готовиться ко сну "
-            currentHour in 22..23 || currentHour in 0..5 -> "Время для сна"
-            else -> "Хочешь перекусить?"
-        }
-
-        messageTextView.text = message
-    }
-
-    private fun setupStepSensor() {
-        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-
-        if (stepSensor != null) {
-            Log.d("SensorCheck", "Шагомер найден!")
-            // Подключай слушатель
-        } else {
-            Log.e("SensorCheck", "Датчик шагов не найден!")
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        messageTextView.text = when {
+            hour in 6..8   -> "Время завтрака"
+            hour in 12..14 -> "Время обеда"
+            hour in 16..19 -> "Время ужина"
+            hour in 20..21 -> "Пора готовиться ко сну"
+            else           -> "Хочешь перекусить?"
         }
     }
 
-        override fun onResume() {
+    override fun onResume() {
         super.onResume()
-        stepSensor?.also { sensor ->
-            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
+        stepProvider.start { steps ->
+            runOnUiThread { stepsTextView.text = "Шаги: $steps" }
         }
     }
 
     override fun onPause() {
         super.onPause()
-        sensorManager.unregisterListener(this)
+        stepProvider.stop()
     }
 
-    override fun onSensorChanged(event: SensorEvent?) {
-        if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-            val steps = event.values[0].toInt()
-            if (stepsAtStart == -1) {
-                stepsAtStart = steps
-            }
-            val currentSteps = steps - stepsAtStart
-            stepsTextView.text = "Шаги сегодня: $currentSteps"
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == INFO_REQUEST && resultCode == Activity.RESULT_OK) {
+            // Пользователь только что пересчитал — обновляем остаток калорий
+            dailySummaryViewModel.refreshSummary(reportId)
         }
     }
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Метод обязателен, даже если не используется
-    }
-
 }
+
+
 
 
 

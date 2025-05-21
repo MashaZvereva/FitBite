@@ -8,10 +8,13 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fitbite.R
 import com.example.fitbite.data.model.Product
+import com.example.fitbite.presentation.viewmodel.DailySummaryViewModel
 
 class ProductAdapter(
     private var products: List<Product>,
-    private val onAddClick: (Product, Int) -> Unit
+    private val onAddClick: (Product, Int) -> Unit,
+    private val dailySummaryViewModel: DailySummaryViewModel,
+    private val reportId: Int
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -19,7 +22,7 @@ class ProductAdapter(
         val calories: TextView = view.findViewById(R.id.product_calories)
         val metric: TextView = view.findViewById(R.id.product_metric)
         val addButton: Button = view.findViewById(R.id.add_button)
-        val portionInput: EditText = view.findViewById(R.id.portion_input)
+        val portionInput: EditText = view.findViewById(R.id.portion_input_product)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
@@ -30,6 +33,7 @@ class ProductAdapter(
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = products[position]
+
         holder.name.text = product.name
         holder.calories.text = "Калории: ${product.calories ?: 0.0}"
         holder.metric.text = "Мера: ${product.metric}"
@@ -49,7 +53,10 @@ class ProductAdapter(
         holder.addButton.setOnClickListener {
             val portion = holder.portionInput.text.toString().toIntOrNull()
             if (portion != null && portion in 1..1000) {
+                // Обработка добавления продукта в MealComposition
                 onAddClick(product, portion)
+                // Обновляем summary после добавления
+                dailySummaryViewModel.refreshSummary(reportId)
             } else {
                 holder.portionInput.error = "Введите от 1 до 1000"
             }
@@ -63,3 +70,4 @@ class ProductAdapter(
         notifyDataSetChanged()
     }
 }
+

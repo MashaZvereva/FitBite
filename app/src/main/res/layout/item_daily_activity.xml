@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="12dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Название активности -->
+        <TextView
+            android:id="@+id/activityName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Activity Name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Время -->
+        <TextView
+            android:id="@+id/durationMinutes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="30 мин"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/activityName"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Калории -->
+        <TextView
+            android:id="@+id/caloriesBurned"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="150 ккал"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/activityName"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Кнопка удалить -->
+        <Button
+            android:id="@+id/removeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Удалить"
+            app:layout_constraintTop_toBottomOf="@id/durationMinutes"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="12dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

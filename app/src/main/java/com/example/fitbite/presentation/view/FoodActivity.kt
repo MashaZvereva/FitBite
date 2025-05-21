@@ -48,7 +48,8 @@ class FoodActivity : AppCompatActivity() {
                 val fragment = RecipeDetailFragment.newInstance(recipe)
                 fragment.show(supportFragmentManager, "RecipeDetail")
             },
-            onAddClick = { _, _ -> }, // <-- заглушка
+            onAddRecipeToMeal = { _, _ -> }, // <-- заглушка
+            onRefreshSummary = {},
             isFoodActivity = true
         )
         recyclerView.adapter = recipeAdapter
@@ -113,6 +114,4 @@ class FoodActivity : AppCompatActivity() {
                     (it.cooking_time ?: 0) <= maxTime
         }
     }
-
-
 }

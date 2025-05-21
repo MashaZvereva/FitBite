@@ -79,6 +79,34 @@
                 android:layout_height="wrap_content"
                 android:textSize="16sp" />
 
+            <!-- Белки -->
+            <TextView
+                android:id="@+id/recipeProteins"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Белки: 0 г"
+                android:textSize="16sp"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Жиры -->
+            <TextView
+                android:id="@+id/recipeFats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Жиры: 0 г"
+                android:textSize="16sp"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Углеводы -->
+            <TextView
+                android:id="@+id/recipeCarbs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Углеводы: 0 г"
+                android:textSize="16sp"
+                android:layout_marginBottom="16dp"/>
+
+
             <!-- Заголовок ингредиентов -->
             <TextView
                 android:id="@+id/ingredientsTitle"
