@@ -8,45 +8,41 @@ import android.icu.util.Calendar
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import com.example.fitbite.R
-import com.example.fitbite.presentation.viewmodel.AuthViewModel
 import android.util.Log
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
+import com.example.fitbite.BuildConfig
+import com.example.fitbite.R
 import com.example.fitbite.data.model.DailyReport
 import com.example.fitbite.data.model.DailyReportResponse
 import com.example.fitbite.data.network.RetrofitInstance.api
 import com.example.fitbite.data.storage.SessionManager
-import com.example.fitbite.domain.usecase.sensor.MockStepProvider
 import com.example.fitbite.domain.usecase.sensor.RealStepProvider
 import com.example.fitbite.domain.usecase.sensor.StepProvider
+import com.example.fitbite.domain.usecase.sensor.calc.WaterViewModel
+import com.example.fitbite.presentation.viewmodel.AuthViewModel
+import com.example.fitbite.presentation.viewmodel.DailySummaryViewModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.example.fitbite.BuildConfig
-import com.example.fitbite.data.network.RetrofitInstance
-import com.example.fitbite.domain.usecase.sensor.calc.WaterViewModel
-import com.example.fitbite.presentation.viewmodel.DailySummaryViewModel
-import kotlinx.coroutines.launch
+import androidx.compose.runtime.remember
 
 
 // ViewModel
@@ -76,6 +72,9 @@ class MainActivity : AppCompatActivity() {
 
     // Календарь
     private lateinit var calendarLayout: LinearLayout
+    private lateinit var calendarScrollView: HorizontalScrollView
+    private lateinit var currentDateKey: String
+    private var selectedDateView: TextView? = null
 
     // Трекер воды
     private lateinit var waterTextView: TextView
@@ -84,6 +83,7 @@ class MainActivity : AppCompatActivity() {
     // Остаток калорий
     private lateinit var caloriesTextView: TextView
     private lateinit var dailySummaryViewModel: DailySummaryViewModel
+    private lateinit var burnedCaloriesTextView: TextView
 
     // Контейнер для фрагментов «Активность»
     private lateinit var fragmentContainer: FrameLayout
@@ -124,6 +124,7 @@ class MainActivity : AppCompatActivity() {
         startClockUpdater()
 
         // Календарь
+        calendarScrollView = findViewById(R.id.calendarScrollView)
         calendarLayout = findViewById(R.id.calendarLayout)
         initWeekCalendar()
 
@@ -136,7 +137,7 @@ class MainActivity : AppCompatActivity() {
             ViewModelProvider.AndroidViewModelFactory.getInstance(application)
         )[WaterViewModel::class.java]
         waterViewModel.waterLiveData.observe(this) { water ->
-            waterTextView.text = "Вода: ${water} мл"
+            waterTextView.text = "${water} мл"
         }
 
         // Шаги
@@ -146,21 +147,25 @@ class MainActivity : AppCompatActivity() {
 
         // Остаток калорий
         caloriesTextView = findViewById(R.id.caloriesTextView)
+        burnedCaloriesTextView = findViewById(R.id.caloriTextView)
         dailySummaryViewModel = ViewModelProvider(this)[DailySummaryViewModel::class.java]
         dailySummaryViewModel.summaryLiveData.observe(this) { summary ->
-            caloriesTextView.text = "Осталось: ${summary.caloriesLeft} ккал"
+            Log.d("DAILY_SUMMARY", "summary: $summary")
+            caloriesTextView.text = "${summary.caloriesLeft} ккал"
+            burnedCaloriesTextView.text = "${summary.caloriesBurned} ккал"
         }
 
 
-        findViewById<Button>(R.id.btnInfoUser).setOnClickListener {
+        findViewById<ImageButton>(R.id.navProfile).setOnClickListener {
             val intent = Intent(this, InfoUserActivity::class.java)
             intent.putExtra("report_id", reportId)
             startActivityForResult(intent, INFO_REQUEST)
         }
 
-        findViewById<Button>(R.id.btnSettings).setOnClickListener {
+        findViewById<ImageButton>(R.id.navSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
         findViewById<Button>(R.id.btnFood).setOnClickListener {
             startActivity(Intent(this, FoodActivity::class.java))
         }
@@ -183,9 +188,11 @@ class MainActivity : AppCompatActivity() {
 
         // Создаём/загружаем отчёт
         val authToken = sessionManager.fetchAuthToken()
-        loadDailyReport(authToken) { id ->
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        loadDailyReport(authToken, today) { id ->
             if (id != null && id != -1) {
                 reportId = id
+
                 // теперь можно переключаться между приёмами пищи
                 btnBreakfast.isEnabled = true
                 btnLunch.isEnabled     = true
@@ -196,10 +203,12 @@ class MainActivity : AppCompatActivity() {
                 // подтягиваем воду и калории
                 waterViewModel.refreshWater(reportId)
                 dailySummaryViewModel.refreshSummary(reportId)
+
             } else {
                 Toast.makeText(this, "Не удалось загрузить отчёт", Toast.LENGTH_SHORT).show()
             }
         }
+
 
         btnBreakfast.setOnClickListener { openMealFragment("breakfast") }
         btnLunch    .setOnClickListener { openMealFragment("lunch") }
@@ -222,41 +231,102 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initWeekCalendar() {
+        calendarLayout.removeAllViews()
+
+        val today = Calendar.getInstance()
+        val todayDay = today.get(Calendar.DAY_OF_MONTH)
+        val todayMonth = today.get(Calendar.MONTH)
+        val todayYear = today.get(Calendar.YEAR)
+        currentDateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(today.time)
+
         val cal = Calendar.getInstance()
-        val today = cal.get(Calendar.DAY_OF_MONTH)
         cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
-        repeat(7) {
+        cal.add(Calendar.DAY_OF_MONTH, -14)
+
+        repeat(21) {
+            val day = cal.get(Calendar.DAY_OF_MONTH)
+            val month = cal.get(Calendar.MONTH)
+            val year = cal.get(Calendar.YEAR)
+            val selectedCal = cal.clone() as Calendar
+            val selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedCal.time)
+            val selectedDateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
+
             val tv = TextView(this).apply {
-                text = cal.get(Calendar.DAY_OF_MONTH).toString()
-                setPadding(20,20,20,20)
+                tag = selectedDateKey
+                text = day.toString()
                 gravity = Gravity.CENTER
                 setTextColor(Color.BLACK)
-                setBackgroundColor(
-                    if (cal.get(Calendar.DAY_OF_MONTH)==today)
-                        Color.GREEN else ContextCompat.getColor(this@MainActivity, R.color.border_color)
-                )
-                layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply {
-                    setMargins(5,0,5,0)
+                setPadding(0, 24, 0, 24)
+
+                layoutParams = LinearLayout.LayoutParams(
+                    resources.getDimensionPixelSize(R.dimen.calendar_day_width),
+                    resources.getDimensionPixelSize(R.dimen.calendar_day_width)
+                ).apply {
+                    setMargins(8, 0, 8, 0)
+                }
+
+                background = when (selectedDateKey) {
+                    currentDateKey -> ContextCompat.getDrawable(this@MainActivity, R.drawable.calendar_today_outline)
+                    else           -> ContextCompat.getDrawable(this@MainActivity, R.drawable.calendar_day_bg)
+                }
+
+                setOnClickListener {
+                    highlightSelectedDay(this)
+
+                    val token = sessionManager.fetchAuthToken()
+
+                    loadDailyReport(token, selectedDate) { id ->
+                        if (id != null && id != -1) {
+                            reportId = id
+                            waterViewModel.refreshWater(reportId)
+                            dailySummaryViewModel.refreshSummary(reportId)
+                        } else {
+                            Toast.makeText(context, "Ошибка загрузки отчёта", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
+
             calendarLayout.addView(tv)
-            cal.add(Calendar.DAY_OF_MONTH,1)
+            cal.add(Calendar.DAY_OF_MONTH, 1)
+        }
+
+        calendarScrollView.post {
+            calendarScrollView.scrollTo(calendarLayout.getChildAt(14).left, 0)
+        }
+    }
+
+    private fun highlightSelectedDay(selectedView: TextView) {
+        for (i in 0 until calendarLayout.childCount) {
+            val child = calendarLayout.getChildAt(i)
+            if (child is TextView) {
+                val dateKey = child.tag as? String
+                child.background = when {
+                    dateKey == currentDateKey -> ContextCompat.getDrawable(this, R.drawable.calendar_today_outline)
+                    else -> ContextCompat.getDrawable(this, R.drawable.calendar_day_bg)
+                }
+            }
+        }
+
+        selectedDateView = selectedView
+        val dateKey = selectedView.tag as? String
+        selectedView.background = when {
+            dateKey == currentDateKey -> ContextCompat.getDrawable(this, R.drawable.calendar_today_selected)
+            else -> ContextCompat.getDrawable(this, R.drawable.calendar_day_selected)
         }
     }
 
 
-    private fun loadDailyReport(token: String?, callback: (Int?) -> Unit) {
+
+    private fun loadDailyReport(token: String?, date: String, callback: (Int?) -> Unit) {
         if (token.isNullOrEmpty()) return callback(null)
         val authHeader = "Bearer $token"
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val report = DailyReport(date=today, user=sessionManager.getUserIdFromToken().toString())
+        val report = DailyReport(date = date, user = sessionManager.getUserIdFromToken().toString())
         api.createDailyReport(authHeader, report).enqueue(object : Callback<DailyReportResponse> {
-            override fun onResponse(
-                call: Call<DailyReportResponse>,
-                response: Response<DailyReportResponse>
-            ) {
+            override fun onResponse(call: Call<DailyReportResponse>, response: Response<DailyReportResponse>) {
                 callback(response.body()?.id)
             }
+
             override fun onFailure(call: Call<DailyReportResponse>, t: Throwable) {
                 callback(null)
             }

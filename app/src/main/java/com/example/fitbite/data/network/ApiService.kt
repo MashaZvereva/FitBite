@@ -117,5 +117,10 @@ interface ApiService {
         @Path("report_id") reportId: Int
     ): Response<DailySummaryResponse>
 
+    @DELETE("api/delete-account/")
+    suspend fun deleteAccount(
+        @Header("Authorization") token: String
+    ): Response<Unit>
+
 }
 

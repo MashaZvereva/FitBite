@@ -3,7 +3,7 @@
     <color name="button_text_color">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="color1">#4F2C02</color>
-    <color name="color2">#FFDCB3</color>
+    <color name="color2">#FFF8ED</color>
     <color name="color3">#E5E5E5</color>
     <color name="button_background">#C5C5C5</color>
     <color name="button_background2">#595959</color>
@@ -18,5 +18,14 @@
     <color name="light_blue_A200">#FF40C4FF</color>
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
-    <color name="border_color">#A1FFF1E3</color>
+    <color name="border_color">#A1FFF6EC</color>
+    <color name="light_blue_custom">#EFFDFF</color>
+    <color name="light_green_custom">#F2FDE8</color>
+    <color name="light_green_custom2">#DDE9CE</color>
+    <color name="light_yellow_custom">#FDF9E6</color>
+    <color name="light_orange_custom">#FFF6EC</color>
+    <color name="light_red_custom">#FFE1E1</color>
+    <color name="light_purple_custom">#FAE7FF</color>
+    <color name="grey_color">#EDEDED</color>
+
 </resources>

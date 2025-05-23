@@ -36,5 +36,5 @@
     <!-- Размер кнопок -->
     <dimen name="size_115">115dp</dimen>
     <dimen name="size_40">40dp</dimen>
-
+    <dimen name="calendar_day_width">48dp</dimen>
 </resources>

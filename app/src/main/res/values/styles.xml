@@ -21,10 +21,13 @@
     </style>
 
     <!-- Стиль для кнопок с рамкой -->
-    <style name="ButtonWithBorderStyle">
-        <item name="android:background">@drawable/button_border</item> <!-- Укажите сюда ваш ресурс для границы -->
+    <style name="ButtonWithBorderStyle" parent="Widget.Material3.Button">
         <item name="android:textColor">@color/button_text_color</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="android:gravity">center_vertical|start</item>
     </style>
+
 
     <!-- Стиль для текста вкладки -->
     <style name="CustomTabTextAppearance" parent="TextAppearance.Design.Tab">

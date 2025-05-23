@@ -22,32 +22,40 @@ class AuthActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Проверяем наличие токена перед загрузкой интерфейса
+        val showRegister = intent.getBooleanExtra("showRegister", false)
+
         authViewModel.getToken { token ->
             if (!token.isNullOrEmpty()) {
-                // Если токен найден, загружаем тему и переходим в MainActivity
-                val userId = getCurrentUserId() // Получаем уникальный ID пользователя
-                val isDarkMode = loadTheme(userId) // Загружаем тему
-                applyTheme(isDarkMode) // Применяем тему
-
-                // Переход в MainActivity
+                val userId = getCurrentUserId()
+                val isDarkMode = loadTheme(userId)
+                applyTheme(isDarkMode)
                 navigateToMainActivity()
             } else {
-                // Если токен не найден, показываем интерфейс входа/регистрации
                 setContentView(R.layout.activity_auth)
-                setupUI()
+                setupUI(showRegister) // <-- Передаём флаг
             }
         }
     }
 
-    private fun setupUI() {
+    private fun setupUI(startWithRegister: Boolean = false) {
+
         val emailEditText: EditText = findViewById(R.id.emailEditText)
         val usernameEditText: EditText = findViewById(R.id.usernameEditText)
         val passwordEditText: EditText = findViewById(R.id.passwordEditText)
         val actionButton: Button = findViewById(R.id.actionButton)
         val switchTextView: TextView = findViewById(R.id.switchTextView)
 
-        var isLoginMode = true
+        var isLoginMode = !startWithRegister
+
+        fun updateUI() {
+            emailEditText.visibility = if (isLoginMode) View.GONE else View.VISIBLE
+            usernameEditText.visibility = View.VISIBLE
+            actionButton.text = if (isLoginMode) "Вход" else "Регистрация"
+            switchTextView.text =
+                if (isLoginMode) "У Вас нет аккаунта? Зарегистрируйтесь" else "Уже есть аккаунт? Войдите"
+        }
+
+        updateUI()
 
         actionButton.setOnClickListener {
             val username = usernameEditText.text.toString()
@@ -57,7 +65,6 @@ class AuthActivity : AppCompatActivity() {
 
             if (isLoginMode) {
                 authViewModel.login(username, password, {
-                    // Коллбэк при успешном входе
                     authViewModel.getToken { token ->
                         if (!token.isNullOrEmpty()) {
                             val sessionManager = SessionManager(this)
@@ -70,14 +77,12 @@ class AuthActivity : AppCompatActivity() {
                         }
                     }
                 }, { errorMessage ->
-                    // Ошибка при входе
                     hideProgressDialog()
                     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                 })
             } else {
                 val email = emailEditText.text.toString()
                 authViewModel.register(username, email, password, {
-                    // Коллбэк при успешной регистрации
                     authViewModel.getToken { token ->
                         if (!token.isNullOrEmpty()) {
                             val sessionManager = SessionManager(this)
@@ -90,7 +95,6 @@ class AuthActivity : AppCompatActivity() {
                         }
                     }
                 }, { errorMessage ->
-                    // Ошибка при регистрации
                     hideProgressDialog()
                     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                 })
@@ -99,11 +103,7 @@ class AuthActivity : AppCompatActivity() {
 
         switchTextView.setOnClickListener {
             isLoginMode = !isLoginMode
-            emailEditText.visibility = if (isLoginMode) View.GONE else View.VISIBLE
-            usernameEditText.visibility = View.VISIBLE
-            actionButton.text = if (isLoginMode) "Вход" else "Регистрация"
-            switchTextView.text =
-                if (isLoginMode) "У Вас нет аккаунта? Зарегистрируйтесь" else "Уже есть аккаунт? Войдите"
+            updateUI()
         }
     }
 
@@ -150,4 +150,13 @@ class AuthActivity : AppCompatActivity() {
         // Убедитесь, что все диалоги или окна закрыты
         progressDialog?.dismiss()
     }
+
+    private fun navigateToRegisterActivity() {
+        val intent = Intent(this, AuthActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.putExtra("showRegister", true)
+        startActivity(intent)
+        finish()
+    }
+
 }

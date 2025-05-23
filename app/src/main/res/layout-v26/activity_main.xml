@@ -7,11 +7,11 @@
     android:layout_height="match_parent"
     tools:context=".presentation.view.MainActivity">
 
+
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white"
         android:visibility="gone"
         android:elevation="50dp"
         app:layout_constraintTop_toTopOf="parent"
@@ -21,190 +21,461 @@
 
     <com.example.fitbite.presentation.view.ClockView
         android:id="@+id/clockView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintBottom_toTopOf="@+id/messageTextView"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 
     <TextView
         android:id="@+id/messageTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text=""
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@+id/clockView"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textStyle="bold"
+        android:tooltipText="Напоминание о приёмах пищи, согдасно циркадным ритмам"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="-40dp"
-        android:tooltipText="Напоминание о приёмах пищи, согдасно циркадным ритмам"/>
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clockView" />
 
-    <LinearLayout
-        android:id="@+id/calendarLayout"
+    <HorizontalScrollView
+        android:id="@+id/calendarScrollView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@+id/messageTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="20dp" />
-
-    <!-- Блок с шагами, водой и калориями -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="6dp"
-        app:layout_constraintTop_toBottomOf="@+id/calendarLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="20dp">
 
         <LinearLayout
+            android:id="@+id/calendarLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center">
-
-            <TextView
-                android:id="@+id/stepsTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Шаги: 0"
-                android:textSize="18sp"
-                android:layout_marginEnd="20dp"
-                android:tooltipText="Количество шагов, пройденных за сегодня"/>
-
-            <TextView
-                android:id="@+id/waterTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Вода: 0 мл"
-                android:textSize="18sp"
-                android:layout_marginEnd="20dp"
-                android:tooltipText="Количество воды, выпитой за сегодня"/>
-
-            <TextView
-                android:id="@+id/caloriesTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Калории: 0"
-                android:textSize="18sp"
-                android:tooltipText="Количество калорий, оставшихся упортебить за сегодня"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Кнопки приёма пищи -->
-    <Button
-        android:id="@+id/btnBreakfast"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Завтрак"
-        app:layout_constraintTop_toBottomOf="@+id/calendarLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.1"
-        android:layout_marginTop="100dp"
-        style="@style/ButtonWithBorderStyle" /> <!-- Применен стиль для кнопки с рамкой -->
-
-    <Button
-        android:id="@+id/btnLunch"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Обед"
-        app:layout_constraintTop_toBottomOf="@+id/btnBreakfast"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.1"
-        style="@style/ButtonWithBorderStyle" /> <!-- Применен стиль для кнопки с рамкой -->
-
-    <Button
-        android:id="@+id/btnDinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Ужин"
-        app:layout_constraintTop_toBottomOf="@+id/btnLunch"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.1"
-        style="@style/ButtonWithBorderStyle" /> <!-- Применен стиль для кнопки с рамкой -->
-
-    <Button
-        android:id="@+id/btnSnack"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Перекус"
-        app:layout_constraintTop_toBottomOf="@+id/btnDinner"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.1"
-        style="@style/ButtonWithBorderStyle" /> <!-- Применен стиль для кнопки с рамкой -->
-
-    <Button
-        android:id="@+id/btnActivity"
-        style="@style/ButtonWithBorderStyle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Активность"
-        app:layout_constraintBottom_toBottomOf="@+id/fragment_container"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView"
-        app:layout_constraintVertical_bias="0.1"
-        android:layout_marginTop="20dp"/> <!-- Применен стиль для кнопки с рамкой -->
+            android:gravity="center_vertical" />
+    </HorizontalScrollView>
 
 
-    <!-- Контейнер для кнопок нижнего меню с рамкой -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardView"
+    <!-- 5. Вода и Калории в одной строке -->
+
+    <LinearLayout
+        android:id="@+id/waterCaloriesRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="6dp"
-        app:layout_constraintTop_toBottomOf="@+id/btnSnack"
-        tools:layout_editor_absoluteX="16dp">
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/calendarScrollView">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Вода -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:tooltipText="Количество выпитой воды за сегодня"
+            app:cardBackgroundColor="@color/light_blue_custom"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:strokeColor="@color/light_blue_custom"
+            app:strokeWidth="2dp"
+            android:layout_marginStart="8dp">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:gravity="top"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginTop="2dp"
+                    android:src="@drawable/ic_water" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Вода"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/waterTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 мл"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Калории -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:tooltipText="Количество оставшихся калорий на сегодня"
+            app:cardBackgroundColor="@color/light_red_custom"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:strokeColor="@color/light_red_custom"
+            app:strokeWidth="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="66dp"
+                android:gravity="top"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="2dp"
+                    android:src="@drawable/ic_calc" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Осталось"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/caloriesTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 ккал"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/breakfastLunchRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/waterCaloriesRow">
+
+        <!-- Завтрак -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBreakfast"
+            android:layout_width="0dp"
+            android:layout_height="59dp"
+            android:layout_weight="1"
+            android:text="Завтрак"
+            app:iconSize="32dp"
+            app:icon="@drawable/ic_breakfast"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            app:iconTint="@null"
+            android:backgroundTint="@color/light_yellow_custom"
+            style="@style/ButtonWithBorderStyle" />
+
+        <!-- Обед -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLunch"
+            style="@style/ButtonWithBorderStyle"
+            android:layout_width="0dp"
+            android:layout_height="59dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            app:iconSize="32dp"
+            app:icon="@drawable/ic_lunch"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            android:text="Обед"
+            app:iconTint="@null"
+            android:backgroundTint="@color/light_orange_custom" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/recipesActivityRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dinnerSnackRow">
+
+        <!-- Рецепты -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFood"
+            style="@style/ButtonWithBorderStyle"
+            android:layout_width="0dp"
+            android:layout_height="62dp"
+            android:layout_weight="1"
+            app:iconSize="32dp"
+            app:icon="@drawable/ic_recipes"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            android:text="Рецепты"
+            app:iconTint="@null"
+            android:backgroundTint="@color/light_orange_custom" />
+
+        <!-- Активность -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnActivity"
+            style="@style/ButtonWithBorderStyle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            app:iconSize="32dp"
+            app:icon="@drawable/ic_activity"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            android:text="Активность"
+            app:iconTint="@null"
+            android:backgroundTint="@color/light_blue_custom" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dinnerSnackRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/breakfastLunchRow">
+
+        <!-- Ужин -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDinner"
+            style="@style/ButtonWithBorderStyle"
+            android:layout_width="0dp"
+            android:layout_height="59dp"
+            android:layout_weight="1"
+            app:iconSize="32dp"
+            app:icon="@drawable/ic_dinner"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            android:text="Ужин"
+            app:iconTint="@null"
+            android:backgroundTint="@color/light_blue_custom" />
+
+        <!-- Перекус -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSnack"
+            style="@style/ButtonWithBorderStyle"
+            android:layout_width="0dp"
+            android:layout_height="59dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            app:icon="@drawable/ic_snack"
+            app:iconSize="32dp"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            android:text="Перекус"
+            app:iconTint="@null"
+            android:backgroundTint="@color/light_green_custom" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/stepsBurnedRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/recipesActivityRow">
+
+        <!-- Сожжено калорий -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:tooltipText="Сожжено калорий за сегодня"
+            app:cardBackgroundColor="@color/light_red_custom"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:strokeColor="@color/light_red_custom"
+            app:strokeWidth="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="66dp"
+                android:gravity="top"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="2dp"
+                    android:src="@drawable/ic_calc_sm"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Сожжено"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/caloriTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 ккал"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Шаги -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:tooltipText="Количество шагов за сегодня"
+            app:cardBackgroundColor="@color/light_green_custom"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:strokeColor="@color/light_green_custom"
+            app:strokeWidth="2dp"
+            android:layout_marginStart="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:gravity="top"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginTop="2dp"
+                    android:src="@drawable/ic_steps" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Шаги"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/stepsTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+    >
+
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#FFF0F0F0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+
+        <!-- Профиль -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="0dp">
+            android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btnInfoUser"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="1dp"
-                android:layout_weight="1"
-                android:background="?android:attr/selectableItemBackground"
-                android:text="О Вас"
-                android:textSize="14sp" />
-
-            <Button
-                android:id="@+id/btnSettings"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="0dp"
-                android:layout_weight="1"
-                android:background="?android:attr/selectableItemBackground"
-                android:maxLines="1"
-                android:text="Настрой"
-                android:textSize="14sp" />
-
-            <Button
-                android:id="@+id/btnFood"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="?android:attr/selectableItemBackground"
-                android:text="Рецепты"
-                android:textSize="14sp" />
+            <ImageButton
+                android:id="@+id/navProfile"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_profile"
+                android:scaleType="fitCenter"
+                android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
+        <!-- Настройки -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/navSettings"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_settings"
+                android:scaleType="fitCenter"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -8,6 +8,8 @@ import com.example.fitbite.data.model.*
 import com.example.fitbite.data.network.RetrofitInstance
 import com.example.fitbite.utils.dataStore
 import kotlinx.coroutines.flow.first
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 class AuthRepository(private val context: Context) {
 
@@ -61,4 +63,22 @@ class AuthRepository(private val context: Context) {
             Log.d("AuthRepository", "Token deleted")
         }
     }
+
+    // В AuthRepository
+    suspend fun deleteAccount(token: String): Boolean {
+        return try {
+            val bearerToken = "Bearer $token"
+            val response = RetrofitInstance.api.deleteAccount(bearerToken)
+            response.isSuccessful
+        } catch (e: Exception) {
+            // Если статус 204 — это успех!
+            if (e.message?.contains("HTTP 204") == true) {
+                true
+            } else {
+                Log.e("AuthRepository", "Delete account failed: ${e.message}")
+                false
+            }
+        }
+    }
 }
+

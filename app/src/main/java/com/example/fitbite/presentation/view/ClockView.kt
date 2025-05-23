@@ -35,7 +35,7 @@ class ClockView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         val centerX = width / 2
         val centerY = height / 2
-        val radius = minOf(centerX, centerY) - 110f  // Отступ от центра для радиуса
+        val radius = minOf(centerX, centerY) - 10f  // Отступ от центра для радиуса
 
         // Масштабируем изображение тарелки
         val scale = radius * 2 / Math.min(backgroundBitmap.width, backgroundBitmap.height) // Масштабируем изображение по радиусу

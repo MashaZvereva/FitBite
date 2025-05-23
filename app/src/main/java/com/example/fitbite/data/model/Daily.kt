@@ -37,10 +37,12 @@ data class MealCompositionResponse(
 
 data class DailySummaryResponse(
     @SerializedName("target_calories") val targetCalories: Int,
-    @SerializedName("calories_eaten") val caloriesEaten: Int,
-    @SerializedName("calories_burned") val caloriesBurned: Int,
+    @SerializedName("eaten_calories") val caloriesEaten: Int,
+    @SerializedName("burned_calories") val caloriesBurned: Int,
     @SerializedName("calories_left") val caloriesLeft: Int
 )
+
+
 
 
 
